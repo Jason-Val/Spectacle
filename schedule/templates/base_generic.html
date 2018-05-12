@@ -33,11 +33,6 @@
       aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <!-- TODO urgent: uncomment this
-    {% if user.is_authenticated %}
-      <a class="navbar">Welcome, {{user.first_name}}</a>
-    {% endif %}
-    -->
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto">
@@ -50,24 +45,6 @@
         <li class="nav-item {% if highlight_prereqs %} active {% endif %}">
           <a class="nav-link" href="{% url 'prereqs' %}">Prereqs</a>
         </li>
-        <!-- Profile is deprecated -->
-        
-        <!-- TODO urgent: uncomment this
-        {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-          </li>
-        {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'schedule'%}">Login</a>
-          </li>
-        {% endif %}
-        {% if request.user.is_staff %}
-        <li class="nav-item {% if highlight_admin %} active {% endif %}">
-          <a class="nav-link disabled" href="{% url 'admin:index' %}">Admin</a>
-        </li>
-        {% endif %}
-        -->
       </ul>
     </div>
   </nav>
