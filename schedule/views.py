@@ -19,15 +19,11 @@ def index(request):
     View function for home page of site.
     """
     highlight_index = True
-    
-    course = Course.objects.all()[0]
-    
-    print(course)
-    
+        
     return render(
         request,
         'index.html',
-        context={'highlight_index':highlight_index, 'course': course}
+        context={'highlight_index':highlight_index}
     )
     
 #==================================================================#    
