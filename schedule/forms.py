@@ -6,7 +6,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 import pickle
-"""
+
 # ============== START custom widget and field for geneds =================== #
 # multivaluefield based off https://gist.github.com/elena/3915748
 class MultiWidgetCheckbox(forms.MultiWidget):
@@ -240,4 +240,3 @@ class UserForm(UserCreationForm):
         if commit:
             user.save()
         return user
-"""

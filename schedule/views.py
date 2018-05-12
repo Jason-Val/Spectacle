@@ -409,7 +409,7 @@ def make_user_event(request):
     """
     ajax post form for creating a new user event and adding it to the schedule
     """
-    """
+    
     if request.is_ajax():
         form = UserEventForm(request.POST)
         data = {'status':'FAILURE'}
@@ -437,7 +437,7 @@ def make_user_event(request):
         # THIS SHOULD NEVER HAPPEN - this is an ajax view, and shouldn't render anything
         print("=============Error! new schedule form received non-ajax request!============")
         return schedule(request) # attempt to salvage situation
-    """
+    
     
     
 def del_schedule(request):
@@ -467,7 +467,7 @@ def make_schedule(request):
     """
     ajax view post form for making a new schedule
     """
-    """
+    
     if request.is_ajax():
         form = NewScheduleForm(request.POST)
         data = {'status':'failure'}
@@ -484,7 +484,7 @@ def make_schedule(request):
         # THIS SHOULD NEVER HAPPEN - this is an ajax view, and shouldn't render anything
         print("=============Error! new schedule form received non-ajax request!============")
         return schedule(request) # attempt to salvage situation
-    """
+    
     
 def change_schedule(request):
     """
@@ -502,7 +502,7 @@ def schedule(request):
     It handles rendering the entire page in accordance with all sub-rendering functions
     """
     
-    """
+    
     form = None
     
     #If GET is not empty (ie, if the user has searched for something), use those search parameters to
@@ -732,7 +732,7 @@ def schedule(request):
         'schedule.html',
         {'highlight_schedule':highlight_schedule, 'results_exist':results_exist, 'filters_expanded':filters_expanded, 'form':form, 'user_event_form':user_event_form, 'schedule_form':schedule_form, 'results':results, 'course_tabs':course_tabs, 'user_schedules':user_schedules, 'user_courses':user_courses,}
     )
-    """
+    
 
 #==================================================================#    
 #       ^-------------End schedule views------------^
@@ -757,7 +757,7 @@ def profile(request):
     )
 @login_required(login_url='/profile/login/')
 def prereqs(request):
-    """
+    
     form = flowchartForm(request.GET)
     course_list = []
 
@@ -807,13 +807,13 @@ def prereqs(request):
         'prereqs.html',
         context={'highlight_prereqs':highlight_prereqs, 'form':form, 'course_list':course_list}
     )
-    """
+    
     
 #compsci326
 from django.contrib.auth import logout, login, authenticate
 
 def register(request):
-    """
+    
     if request.method == 'POST':
         request.POST._mutable = True
         student_form = StudentForm(request.POST)
@@ -843,7 +843,7 @@ def register(request):
         student_form = StudentForm()
         args = {'user_form':user_form, 'student_form':student_form}
         return render(request, 'registration/registration_form.html', args)
-    """
+    
     
 def loginPage(request):
     return render(request, 'registration/login.html', {})
