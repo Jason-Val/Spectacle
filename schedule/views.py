@@ -1,5 +1,5 @@
 from .models import Course, Department, Student, Section, Schedule, ScheduleCourse, Term
-from .forms import ScheduleForm, NewScheduleForm, flowchartForm, StudentForm, UserForm, UserEventForm
+#from .forms import ScheduleForm, NewScheduleForm, flowchartForm, StudentForm, UserForm, UserEventForm
 from django.db import models
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.decorators import login_required
@@ -409,6 +409,7 @@ def make_user_event(request):
     """
     ajax post form for creating a new user event and adding it to the schedule
     """
+    """
     if request.is_ajax():
         form = UserEventForm(request.POST)
         data = {'status':'FAILURE'}
@@ -436,6 +437,7 @@ def make_user_event(request):
         # THIS SHOULD NEVER HAPPEN - this is an ajax view, and shouldn't render anything
         print("=============Error! new schedule form received non-ajax request!============")
         return schedule(request) # attempt to salvage situation
+    """
     
     
 def del_schedule(request):
@@ -465,6 +467,7 @@ def make_schedule(request):
     """
     ajax view post form for making a new schedule
     """
+    """
     if request.is_ajax():
         form = NewScheduleForm(request.POST)
         data = {'status':'failure'}
@@ -481,6 +484,7 @@ def make_schedule(request):
         # THIS SHOULD NEVER HAPPEN - this is an ajax view, and shouldn't render anything
         print("=============Error! new schedule form received non-ajax request!============")
         return schedule(request) # attempt to salvage situation
+    """
     
 def change_schedule(request):
     """
@@ -496,6 +500,8 @@ def schedule(request):
     """
     The view for the schedule uses a form with GET for receiving search parameters
     It handles rendering the entire page in accordance with all sub-rendering functions
+    """
+    
     """
     form = None
     
@@ -694,42 +700,10 @@ def schedule(request):
                 # uses regex
                 day_filter = Q(section__days__iregex=r'(\w\w)*(' + section[0] + ')(\w\w)*')
                 
-                #uses boolean fields
-                """
-                day_filter = None
-                if section[0] == True:
-                    if day_filter == None:
-                        day_filter = Q(section__mon=True)
-                    else:
-                        day_filter = day_filter | Q(section__mon=True)
-                if section[1] == True:
-                    if day_filter == None:
-                        day_filter = Q(section__tue=True)
-                    else:
-                        day_filter = day_filter | Q(section__tue=True)
-                if section[2] == True:
-                    if day_filter == None:
-                        day_filter = Q(section__wed=True)
-                    else:
-                        day_filter = day_filter | Q(section__wed=True)
-                if section[3] == True:
-                    if day_filter == None:
-                        day_filter = Q(section__thu=True)
-                    else:
-                        day_filter = day_filter | Q(section__thu=True)
-                if section[4] == True:
-                    if day_filter == None:
-                        day_filter = Q(section__fri=True)
-                    else:
-                        day_filter = day_filter | Q(section__fri=True)
-                """
                 #regex
                 start_filter = Q(section__start__gte=section[2]) # the new course starts after the old course ends
                 end_filter = Q(section__ending__lte=section[1])  # the new course ends before the old course starts
                 
-                #boolean fields
-                #start_filter = Q(section__start__gte=section[6]) # the new course starts after the old course ends
-                #end_filter = Q(section__ending__lte=section[5])  # the new course ends before the old course starts
                 results = results.select_related().exclude(day_filter &  ~(start_filter | end_filter)).distinct()
         results = results.distinct()
         # Display error - no search results match
@@ -758,6 +732,7 @@ def schedule(request):
         'schedule.html',
         {'highlight_schedule':highlight_schedule, 'results_exist':results_exist, 'filters_expanded':filters_expanded, 'form':form, 'user_event_form':user_event_form, 'schedule_form':schedule_form, 'results':results, 'course_tabs':course_tabs, 'user_schedules':user_schedules, 'user_courses':user_courses,}
     )
+    """
 
 #==================================================================#    
 #       ^-------------End schedule views------------^
@@ -782,7 +757,7 @@ def profile(request):
     )
 @login_required(login_url='/profile/login/')
 def prereqs(request):
-
+    """
     form = flowchartForm(request.GET)
     course_list = []
 
@@ -832,10 +807,13 @@ def prereqs(request):
         'prereqs.html',
         context={'highlight_prereqs':highlight_prereqs, 'form':form, 'course_list':course_list}
     )
+    """
+    
 #compsci326
 from django.contrib.auth import logout, login, authenticate
 
 def register(request):
+    """
     if request.method == 'POST':
         request.POST._mutable = True
         student_form = StudentForm(request.POST)
@@ -865,7 +843,8 @@ def register(request):
         student_form = StudentForm()
         args = {'user_form':user_form, 'student_form':student_form}
         return render(request, 'registration/registration_form.html', args)
-
+    """
+    
 def loginPage(request):
     return render(request, 'registration/login.html', {})
 
