@@ -1,0 +1,42 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Uplanner-Prereqs</title>{% endblock %}
+{% if user.is_authenticated %}
+{% block content %}
+
+<p style="display:none;" id="course_list_json">
+	{{ course_list }}
+</p>
+
+<div align="center">
+  <h4>Course Prerequisites Flowchart</h4>
+
+	<form action="" method="get">
+		{{ form.departments }}
+		<input type="submit" value="Reload" class="btn btn-primary btn-sm"/>
+	</form>
+
+</div>
+
+<p style="font-size: 11px; color: grey" align="center">  Note: You have to take course(s) with * to satisfy department requirements</p>
+  <!-- Begin flowchart -->
+
+  <!-- End flowchart -->
+{% endblock %}
+{% else %}
+<li><a href="{% url 'login'%}?next={{request.path}}">Login</a></li>
+{% endif %}
+{% block imports %}
+<!-- This is a temp solution until I start using ajax-->
+  <script type="text/javascript">
+  	var v = document.getElementById('course_list_json'); 
+  </script>
+  {% load static %}
+  <script src="{% static 'scripts/flowchart.js' %}"></script>
+  <div align="center">  <script>drawTable()</script></div>
+
+  {% load static %}
+  <p align="center" id ='credits'>Total Credits: 0</p>
+  <!-- stylesheet used for flowchart by Sihua Chen -->
+  <link href="{% static 'css/flowchart.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}

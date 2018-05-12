@@ -1,0 +1,400 @@
+{% extends "base_generic.html" %}
+
+{% block body %} onload="init();" {% endblock %} 
+
+{% block title %}<title>Uplanner-Schedule</title>{% endblock %}
+{% if user.is_authenticated %}
+{% block content %}
+  <!-- A meta div to store urls for convenient javascript access -->
+  <div id="meta"
+    make-tab-content-url="{% url 'make_tab_content' %}"
+    toggle-filters-url="{% url 'toggle_filters' %}"
+    change-schedulecourse-color-url="{% url 'change_schedulecourse_color' %}"
+    make-tab-content-url="{% url 'make_tab_content' %}"
+    delete-tab-url="{% url 'delete_tab' %}"
+    make-current-course-url="{% url 'make_current_course' %}"
+    make-current-courses-url="{% url 'make_current_courses' %}"
+    add-section-url="{% url 'add_section' %}"
+    del-section-url="{% url 'del_section' %}"
+    make-user-event-url="{% url 'make_user_event' %}"
+    make-schedule-url="{% url 'make_schedule' %}"
+    del-schedule-url="{% url 'del_schedule' %}"
+    schedule-courses-url="{% url 'schedule_courses' %}"
+    change-schedule-url="{% url 'change_schedule' %}"
+  ></div>
+  <div class="container-fluid">
+    <!-- Begin row -->
+    <div class="row">
+
+      <!-- Begin dhtmlx Schedule Column-->
+      <div class="col-lg-8 col-md-8 col-sm-8 col-xs-12 bg-light">
+        <div class="filters_wrapper" id="filters_wrapper">
+          {% for schedule in user_schedules %}
+            <label class="js-schedule-container">
+              <input type="radio" class="js-schedule" name="{{schedule.title}}"/>
+              {{ schedule.title }}
+            </label>
+          {% endfor %}
+        </div>
+        <div class="bg-light text-center">
+          <!-- Button that displays "add a schedule" modal-->
+          <button class="btn btn-primary btn-xs" data-toggle="modal" data-target="#event-modal">Add custom event</button>
+          <button class="btn btn-info btn-xs" data-toggle="modal" data-target="#schedule-modal">Add new schedule</button>
+          <button class="btn btn-danger btn-xs js-del-schedule">Remove active schedule</button>
+          <button class="btn btn-warning btn-xs" id="export-btn" type="button">Export to Spire</button>
+        </div>
+        <!-- "add a schedule" modal with form -->
+        <form action="{% url 'make_schedule' %}" method="post" id="js-submit-schedule-btn">
+        {% csrf_token %}
+          <div class="modal fade" id="schedule-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="schedule-modalLabel">New Schedule</h5>
+                  <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <label>Enter a title for your schedule:
+                  </label>
+                  {{ schedule_form.title }}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <input class="btn btn-info btn-xs" type="submit" value="Submit schedule"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+        <!-- End modal -->
+        
+        <!-- "add an event" modal with form -->
+        <form action="{% url 'make_user_event' %}" method="post" id="js-submit-user-event-btn">
+        {% csrf_token %}
+          <div class="modal fade" id="event-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="schedule-modalLabel">Add a new custom event</h5>
+                  <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <p>Use this form to add your work schedule and other recurring responsibilities</p>
+                  <table>
+                    {{ user_event_form.as_table }}
+                  </table>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <input class="btn btn-info btn-xs" type="submit" value="Add to schedule"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+        <!-- End modal -->
+        
+        <div id="scheduler_here" class="dhx_cal_container" style='width:100%; height:46rem;'>
+          <div class="dhx_cal_navline">
+            <div class="dhx_cal_date"></div>
+          </div>
+          <div class="dhx_cal_header"></div>
+          <div class="dhx_cal_data"></div>
+        </div>
+      </div>
+      <!-- End dhtmlx Schedule Column-->
+
+      <!-- Begin Search Column -->
+      <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12 bg-light">
+        <!-- Begin top search bar -->
+        <form action="" method="get" class="js-expand-block">
+          <div class="row">
+            {% if form.errors %}
+              {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                  <strong>{{ error|escape }}</strong>
+                </div>
+              {% endfor %}
+            {% endif %}
+            <button type="button" class="btn expandBtn js-expand-btn btn-secondary btn-sm" id="searchToggleBTN">
+              {% load static %}
+              <img id="expandBtn" src="{% static 'images/expand.svg' %}" {% if filters_expanded is True %} style="display:none" {% else %} style="display:block" {% endif %}>
+              {% load static %}
+              <img id="hideBtn" src="{% static 'images/hide.svg' %}" {% if filters_expanded is True %} style="display:block" {% else %} style="display:none" {% endif %}>
+            </button>
+            <div class="search-head">
+              {{ form.keywords }}
+              {{ form.departments }}
+            </div>
+          </div>
+          <!-- End top search bar -->
+          <div class="js-expand-info js-expand-default" {% if filters_expanded is True %} style="display:block" {% else %} style="display:none" {% endif %}>
+            <h6 class="search-toggle">Search filters: </h6>
+            <!-- Begin misc options -->
+            <div class="search-container search-toggle">
+            
+              <div class="row justify-content-sm-left">
+                <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                  <div class="checkbox">
+                    <label>
+                      {{ form.closed }} Show closed courses </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      {{ form.conflicted }} Show conflicting courses </label>
+                  </div>
+                  <!--div class="checkbox">
+                    <label>
+                      {{ form.honors_only }} Show only honors courses </label>
+                  </div-->
+                </div>
+                <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                  <!--div>
+                    <label>
+                      {{ form.geneds }} </label>
+                  </div-->
+                  <div class="checkbox">
+                    <label>
+                      {{ form.honors_only }} Show only honors courses </label>
+                  </div>
+                  <div class="btn-group">
+                    <a class="btn-small dropdown-toggle" data-toggle="dropdown" href="#">
+                      gened filters
+                      <span class="caret"></span>
+                    </a>
+                    <!--ul class="dropdown-menu search-container">
+                      {{ form.geneds }}
+                    </ul-->
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- End misc options -->
+
+            <!-- Begin checkbox column options -->
+            <div class="row search-container search-toggle">
+              <!-- Begin weekdays checkboxes -->
+              <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                <label class="label label-default">
+                  Weekdays to include:
+                </label>
+                <div class="checkbox">
+                  <label>
+                    {{ form.Mon }} Monday</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.Tus }} Tuesday</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.Wed }} Wednesday</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.Thu }} Thursday</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.Fri }} Friday</label>
+                </div>
+              </div>
+              <!-- End weekdays checkboxes -->
+
+              <!-- Begin course level checkboxes -->
+              <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                <label class="label label-default">
+                  Course levels to include:
+                </label>
+                <div class="checkbox">
+                  <label>
+                    {{ form.l100 }} 100</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.l200 }} 200</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.l300 }} 300</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.l400 }} 400</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.l500 }} 500+</label>
+                </div>
+              </div>
+              <!-- End coure level checkboxes -->
+
+              <!-- Begin # credits checkboxes -->
+              <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                <label class="label label-default">
+                  Course credits to include:
+                </label>
+                <div class="checkbox">
+                  <label>
+                    {{ form.cr1 }} 1.0</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.cr2 }} 2.0</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.cr3 }} 3.0</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.cr4 }} 4.0</label>
+                </div>
+                <div class="checkbox">
+                  <label>
+                    {{ form.cr5 }} 5.0+</label>
+                </div>
+              </div>
+              <!-- End # credits checkboxes -->
+            </div>
+            <div class="row search-container search-toggle">
+              <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                <label>Earliest course start time:</label><br>
+                {{ form.start_time }}
+              </div>
+              <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                <label>Latest course end time:</label><br>
+                {{ form.end_time }}
+              </div>
+              <div class="col-lg-auto col-md-auto col-sm-auto col-xs-auto bg-light">
+                <label>Course term:</label><br>
+                {{ form.course_term }}
+              </div>
+            </div>
+          </div>
+          <!-- End checkbox column options -->
+          <!-- Begin Start Search Button TODO: reconsider the positioning of this, or its necessity -->
+          <div class="text-center">
+            <input type="submit" value="Search" class="btn btn-primary btn-sm"/>
+          </div>
+        </form>
+
+        <!-- Begin Tabs -->
+        <div class="bg-white results-box">
+          <ul class="nav nav-tabs text-center" id="scheduleTab">
+            <!-- Begin results tab -->
+            <li class="nav-item">
+              <a class="nav-link navTab active" id="results-tab" data-toggle="tab" href="#results">Results</a>
+            </li>
+            
+            <!-- Begin current courses tab -->
+            <li class="nav-item">
+              <a class="nav-link navTab" id="courses-tab" data-toggle="tab" href="#courses">Courses</a>
+            </li>
+            
+            <!-- Begin course detail tabs -->
+            {% for tab in course_tabs %}
+              <li class="nav-item" id="nav-{{tab.course.pk}}">
+                <a class="nav-link navTab course-tab" id="{{tab.course.pk}}-tab" data-toggle="tab" href="#{{tab.course.pk}}">
+                  {{tab.course.dept.code}} {{tab.course.number}}
+                    <button class="btn btn-danger btn-xs js-del-tab btn-results" course-id='{{tab.course.pk}}'>&times;</button>
+                </a>
+              </li>
+            {% endfor %}
+            
+          </ul>
+          
+          <!-- Begin tab contents -->
+          <div class="tab-content" id="scheduleTabContent">
+            
+            <!-- Begin search results -->
+            <div class="tab-pane show active" id="results">
+              {% if results_exist %}
+                <ul class="list-group fixed-panel">
+                {% for course in results %}
+                  <li class="list-group-item js-expand-block">
+                    <button class="btn js-expand-btn btn-primary btn-xs btn-results">+</button>{{ course.dept.code }} {{ course.number }} - {{ course.title }}
+                    <div class="js-expand-info">
+                      <!-- Begin column information -->
+                      <div class="row">
+                        <!-- Left column -->
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                          {% if course.open == False %}<p>Course is closed</p>{% endif %}
+                          {% if course.lab == True %}<p>Course has labs</p>{% endif %}
+                        </div>
+                        <!-- Right column -->
+                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                          {% if course.conflicts == True %}<p>Course conflicts</p>{% endif %}
+                          <p>Credits: {{course.credits}}</p>
+                        </div>
+                      </div>
+                      <!-- Begin block information -->
+                      <p><strong>Description:</strong> {{course.description}}</p>
+                      <p><strong>Restrictions:</strong> {{course.reqs}}</p>
+                      {% if course.geneds %}
+                        <p><strong>Geneds:</strong>
+                        {% for gened in course.geneds %}
+                          {{gened}}
+                        {% endfor %} </p>
+                      {% endif %}
+                    
+                    </div>
+                    <br>
+                    <button class="btn btn-fullInfo btn-xs btn-results js-make-tab" course-id="{{course.pk}}" course-dept="{{ course.dept.code }}" course-num="{{ course.number }}">View course times</button>
+                  </li>
+                {% endfor %}
+                </ul>
+              {% else %}
+                <div class="fixed-panel"><p>No courses match your search</p></div>
+              {% endif %}
+            </div>
+            
+            <!-- Begin current courses -->
+            <div class="tab-pane" id="courses">
+              <ul class="list-group fixed-panel" id="current-courses">
+                <div class="fixed-panel">
+                  {% include 'schedule_current_courses.html' %}
+                </div>
+              </ul>
+            </div>
+            
+            <!-- Begin course tabs -->
+            {% if course_tabs %}
+              {% for tab in course_tabs %}
+                <div class="tab-pane fixed-panel" id="{{tab.course.pk}}">
+                  {% include 'schedule_tabs_content.html' %}
+                </div>
+              {% endfor %}
+            {% endif %}
+            
+          </div>
+        </div>
+      </div>
+      <!-- End Columns -->
+
+    </div>
+  </div>
+  <!-- End Row -->
+
+{% endblock %}
+{% else %}
+<li><a href="{% url 'login'%}?next={{request.path}}">Login</a></li>
+{% endif %}
+{% block imports %}
+  <!-- Import dhtmlx schedule builder modules -->
+  {% load static %}
+  <script src="{% static 'dhtmlxScheduler_v4.4.0/codebase/dhtmlxscheduler.js' %}" type="text/javascript"></script>
+  {% load static %}
+  <script src="{% static 'dhtmlxScheduler_v4.4.0/codebase/ext/dhtmlxscheduler_limit.js' %}" type="text/javascript" charset="utf-8"></script>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'dhtmlxScheduler_v4.4.0/codebase/dhtmlxscheduler.css' %}" type="text/css">
+  
+  <!-- Import our schedule builder javascript -->
+  {% load static %}
+  <script src="{% static 'scripts/scheduleBuilder.js' %}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}

@@ -1,0 +1,32 @@
+
+  {{course.title}}
+  <div>
+    <button class="btn btn-danger btn-xs btn-results js-del" section-id='{{course.uid}}'>Delete</button>
+    {% if course.component != 'CUS' %}
+      <button class="btn btn-fullInfo btn-xs btn-results js-make-tab" course-id="{{course.clss.pk}}" course-dept="{{ course.clss.dept.code }}" course-num="{{ course.clss.number }}">View course times</button>
+    {% endif %}
+    <span class="dropdown">
+      <button class="btn btn-xs btn-default dropdown-toggle btn-results" type="button" data-toggle="dropdown">
+        Change color
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        {% for color in course.colors %}
+          <button class="btn btn-xs js-change-color" section-id="{{course.uid}}" color="{{color}}" style='background-color:{{color}};'></button>
+        {% endfor %}
+      </ul>
+    </span>
+    {% if course.schedules %}
+      <span class="dropdown">
+        <button class="btn btn-xs btn-default dropdown-toggle btn-results" type="button" data-toggle="dropdown">
+          add to another schedule...
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          {% for schedule in course.schedules %}
+            <button class="btn btn-xs js-add-to-schedule" section-id="{{course.uid}}" schedule-title="{{schedule.title}}">{{schedule.title}}</button>
+          {% endfor %}
+        </ul>
+      </span>
+    {% endif %}
+  </div>

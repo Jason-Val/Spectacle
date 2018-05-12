@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block body %} id="landing" {% endblock %}
+
+{% block content %}
+  <!-- Start jumbotron -->
+  <div class="jumbotron">
+    <h1 class="display-4">Plan Your UMass</h1>
+    <p class="lead">This is a website made by UMass students for UMass students. Our goal is to help organize your semester with a dynamic
+      easy-to-use schedule builder. With our application, you will be able to craft your schedule all in one window and export
+      everything right into Spire before enrolling in anything!</p>
+    <p class="lead">
+      <a class="btn btn-primary btn-lg" href="{% url 'register' %}" role=button>Get Started</a>
+    </p>
+  </div>
+  <!-- End jumbotron -->
+{% endblock %}
