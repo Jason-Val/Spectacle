@@ -20,10 +20,12 @@ def index(request):
     """
     highlight_index = True
     
+    course = Course.objects.all()[0]
+    
     return render(
         request,
         'index.html',
-        context={'highlight_index':highlight_index}
+        context={'highlight_index':highlight_index, course}
     )
     
 #==================================================================#    
