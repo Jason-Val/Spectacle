@@ -1,0 +1,56 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container" style="height:100%;width:100%;">
+  <div class="row" style="height:10em;"></div>
+  <div class="row align-items-center">
+    <div class="col-md-4"></div>
+    <div class="col-md-4" style="border-radius:10px; background-color:rgb(214, 214, 214)">
+        <div style="text-align: center; padding-top:1em"><h1>Login</h1></div>
+      {% if form.errors %}
+      <div style="text-align: center;"><p>Your username and password didn't match. Please try again.</p></div>
+      
+      {% endif %}
+
+      {% if next %}
+        {% if user.is_authenticated %}
+      <h2>Your account doesn't have access to this page. To proceed, please login with an account that has access.</h2>
+        {% else %}
+      
+        {% endif %}
+      {% endif %}
+      
+      <form method="post" action="{% url 'login' %}?next={{request.path}}" style="text-align: center;">
+      {% csrf_token %}
+      
+        <div>
+          <td><label>email: </label></td>
+          <td>{{ form.username }}</td>
+        </div>
+        <div>
+          <td>{{ form.password.label_tag }}</td>
+          <td>{{ form.password }}</td>
+        </div>
+        <div>
+          <input type="submit" value="login" />
+          <input type="hidden" name="next" value="{% url 'schedule'%}?next={{request.path}}">
+        </div>
+      </form>
+
+      {# Assumes you setup the password_reset view in your URLconf #}
+      <div class="row">
+        <div class="col" style="text-align: center;">
+          <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
+          
+        </div>
+        <div class="col" style="text-align: center;">
+          <p><a href="{% url 'register' %}">Register</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4"></div>
+</div>
+
+
+{% endblock %}
