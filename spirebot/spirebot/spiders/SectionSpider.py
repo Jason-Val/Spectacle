@@ -21,7 +21,6 @@ import logging
 from scrapy.utils.log import configure_logging
 from schedule.models import Term, Department, Course, Section, Gened
 import time
-import sys
 from decouple import config, Csv
 
 # Convenience method/class from http://www.obeythetestinggoat.com/how-to-get-selenium-to-wait-for-page-load-after-a-click.html
@@ -90,15 +89,9 @@ class SectionSpider(scrapy.Spider):
         chrome_options.binary_location = chrome_bin
         chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
-        if sys.argv(1) > 1:
-            self.term_index = int(sys.argv[2])
-        else:
-            self.term_index = 1
+        self.term_index = int(config('START_TERM'), 1)
         self.session_index = 2
-        if sys.argv(1) > 1:
-            self.dept_index = int(sys.argv[3])
-        else:
-            self.dept_index = 2
+        self.dept_index = int(config('START_DEPT'), 2)
         self.doAgain = False
     
     def load_deptitem(self, page1_selector, dept):
