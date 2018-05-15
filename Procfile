@@ -1,2 +1,2 @@
 web: gunicorn uplanner.wsgi
-scraper: ./spirebot/run_scraper.sh
+scraper: bash ./spirebot/run_scraper.sh
