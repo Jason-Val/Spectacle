@@ -89,9 +89,10 @@ class SectionSpider(scrapy.Spider):
         chrome_options.binary_location = chrome_bin
         chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
-        self.term_index = int(config('START_TERM'), 1)
+        self.term_index = int(config('START_TERM'), '1')
+        print(self.term_index)
         self.session_index = 2
-        self.dept_index = int(config('START_DEPT'), 2)
+        self.dept_index = int(config('START_DEPT'), '2')
         self.doAgain = False
     
     def load_deptitem(self, page1_selector, dept):
