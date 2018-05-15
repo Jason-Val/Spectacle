@@ -84,9 +84,14 @@ class SectionSpider(scrapy.Spider):
     start_urls = [login_url]
     
     def __init__(self):
+        chrome_bin = config('GOOGLE_CHROME_SHIM')
+        
+        print(chrome_bin)
+        
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  
-        self.driver = webdriver.Chrome('./chromedriver', chrome_options=chrome_options)
+        chrome_options.binary_location = chrome_bin
+        chrome_options.add_argument("--headless")
+        self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
         self.term_index = 1
         self.session_index = 2
         self.dept_index = 2
