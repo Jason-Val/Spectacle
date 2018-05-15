@@ -7,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import NoSuchElementException
@@ -20,6 +21,7 @@ import logging
 from scrapy.utils.log import configure_logging
 from schedule.models import Term, Department, Course, Section, Gened
 import time
+from decouple import config, Csv
 
 # Convenience method/class from http://www.obeythetestinggoat.com/how-to-get-selenium-to-wait-for-page-load-after-a-click.html
 class wait_for_page_load(object):
@@ -80,9 +82,11 @@ class SectionSpider(scrapy.Spider):
     name = 'test'
     login_url = 'https://www.spire.umass.edu/psp/heproda/?cmd=login&languageCd=ENG#'
     start_urls = [login_url]
-
+    
     def __init__(self):
-        self.driver = webdriver.Chrome('C:\\Users\\jason\\Tools\\chromedriver\\chromedriver.exe')
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  
+        self.driver = webdriver.Chrome('./chromedriver', chrome_options=chrome_options)
         self.term_index = 1
         self.session_index = 2
         self.dept_index = 2
@@ -264,12 +268,12 @@ class SectionSpider(scrapy.Spider):
         self.driver.get(response.url)
         username = self.driver.find_element_by_id('userid')
         password = self.driver.find_element_by_id('pwd')
-        with open('C:\\Users\\jason\\Documents\\Misc Notes\\login_info.txt') as f:
-            line = f.read()
-        f.close()
-        login_info = line.split()
-        username.send_keys(login_info[0])
-        password.send_keys(login_info[1])
+        
+        my_name = config('USERNAME')
+        my_pass = config('PASSWORD')
+
+        username.send_keys(my_name)
+        password.send_keys(my_pass)
         self.driver.find_element_by_name('Submit').submit()
 
         #move to student center
