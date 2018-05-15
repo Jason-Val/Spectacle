@@ -39,7 +39,15 @@ class wait_for_page_load(object):
                 self.old_error = None
         
     def page_has_loaded(self):
-        new_page = self.browser.find_element_by_tag_name('html')
+        attempts = 0
+        new_page = None
+        while attempts < 3:
+            try:
+                attempts += 1
+                new_page = self.browser.find_element_by_tag_name('html')
+            except:
+                pass
+        
         error_response = None
         if self.error_xpath != None:
             try:
