@@ -507,7 +507,8 @@ class SectionSpider(scrapy.Spider):
                 #     raise TimeoutException
                 # else: 
                 #     break
-                
+        self.meta.finished = True
+        self.meta.save()
             # except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             #     self.doAgain = True
             #     if(self.term_index - 1 >= 1):
