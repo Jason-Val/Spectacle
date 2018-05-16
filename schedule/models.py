@@ -18,6 +18,16 @@ def delete_repo(sender, instance, **kwargs):
             if ScheduleCourse.objects.filter(course=instance.course).exclude(schedule=instance.schedule).count() == 0:
                 instance.course.delete()
 
+class ScheduleCourseManager(models.Manager):
+    def create_meta(self, finished):
+        section = self.create(finished=finished, term=1, dept=2)
+        return section
+    
+class Meta(models.Model):
+    finished = models.BooleanField()
+    term = models.IntegerField()
+    dept = models.IntegerField()
+    
 class Gened(models.Model):
     name = models.CharField(max_length=200, help_text="Enter a gened category")
     code = models.CharField(max_length=2, help_text="Enter the gened abbreviation")

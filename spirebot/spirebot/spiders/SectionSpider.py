@@ -19,7 +19,7 @@ from scrapy.shell import inspect_response
 from scrapy.utils.markup import (remove_tags, replace_escape_chars)
 import logging
 from scrapy.utils.log import configure_logging
-from schedule.models import Term, Department, Course, Section, Gened
+from schedule.models import Term, Department, Course, Section, Gened, Meta
 import time
 from decouple import config, Csv
 
@@ -97,10 +97,15 @@ class SectionSpider(scrapy.Spider):
         chrome_options.binary_location = chrome_bin
         chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
-        self.term_index = int(config('START_TERM', default='1'))
-        print(self.term_index)
+        
+        if not Meta.objects.all().exists():
+            Meta.objects.create_meta(False)
+        
+        self.meta = Meta.objects.all()[0]
+        
+        self.term_index = self.meta.term
         self.session_index = 2
-        self.dept_index = int(config('START_DEPT', default='2'))
+        self.dept_index = self.meta.dept
         self.doAgain = False
     
     def load_deptitem(self, page1_selector, dept):
@@ -493,7 +498,11 @@ class SectionSpider(scrapy.Spider):
                         pass
                     self.session_index = self.session_index + 1
                 self.dept_index = self.dept_index + 1
-            self.term_index = self.term_index + 1 
+                self.meta.dept = self.dept_index
+                self.meta.save()
+            self.term_index = self.term_index + 1
+            self.meta.term = self.term_index
+            self.meta.save()
                 # if(last_term != True):
                 #     raise TimeoutException
                 # else: 
