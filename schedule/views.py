@@ -1,6 +1,7 @@
 from .models import Course, Department, Student, Section, Schedule, ScheduleCourse, Term
 from .forms import ScheduleForm, NewScheduleForm, flowchartForm, StudentForm, UserForm, UserEventForm
 from django.db import models
+from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -83,7 +84,7 @@ def schedule_courses(request):
     """
     
     #TODO: this will fail if user does not exist
-    current_user = Student.objects.filter(user_email=request.user.email)
+    current_user = request.user
     temp_courses = []
     if current_user.exists():
         temp_courses = ScheduleCourse.objects.filter(schedule__student=current_user[0])
@@ -131,7 +132,7 @@ def change_schedulecourse_color(request):
         
     schedule_title = request.session['active_schedule']
     
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     # TODO: this will break if the section/schedule are not found
     schedule = Schedule.objects.get(title=schedule_title, student=current_user)
     section = Section.objects.get(uid=id)
@@ -159,7 +160,7 @@ def del_section(request):
     id = request.GET.get('id', None)
     schedule_title = request.session['active_schedule']
     
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     # TODO: this will break if the section/schedule are not found
     section = Section.objects.get(uid=id)
     schedule = Schedule.objects.get(title=schedule_title, student=current_user)
@@ -183,8 +184,8 @@ def add_section(request):
     id = request.GET.get('id', None)
     #TODO: this will break if does not exist
     section = Section.objects.get(uid=id)
-    current_user = Student.objects.get(user_email=request.user.email)
-        
+    current_user = request.user
+    
     color = None
     title = ""
     schedule = None
@@ -230,7 +231,7 @@ def get_conflicting_sections(section, request):
     convenience function for returning a list of conflicts  with a given section. empty list if none
     """
     #TODO: breaks if 'active_schedule' not in request, or user is not logged in
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     schedule = Schedule.objects.get(student=current_user, title=request.session['active_schedule'])
     
     current_courses = ScheduleCourse.objects.filter(schedule=schedule)
@@ -257,7 +258,7 @@ def get_conflicting_sections(section, request):
     return conflict_courses
     
 def section_in_schedule(section, request):
-    current_user = current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     schedule = Schedule.objects.filter(student=current_user).get(title=request.session['active_schedule'])
     return ScheduleCourse.objects.filter(schedule=schedule, course=section).exists()
     
@@ -355,7 +356,7 @@ def get_current_data(schedulecourse, request):
     else:
         title = course.dept.code + " " + course.number + " - " + course.title + " (" + section.component + ")"
     
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     # each current course also has a listing of schedules it *doesn't* appear on
     schedules = Schedule.objects.filter(student=current_user).select_related().exclude(schedulecourse__course=section)
     
@@ -373,7 +374,7 @@ def make_current_course(request):
     course_id = request.GET.get('course_id', None)
     schedule_title = request.session['active_schedule']
     
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     schedule = Schedule.objects.filter(student=current_user).get(title=schedule_title)
     
     section = Section.objects.filter(uid=course_id)[0]
@@ -391,7 +392,7 @@ def make_current_courses(request):
     renders all elements of "current courses". uses get_current_data
     """
     schedule_title = request.session['active_schedule']
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     schedule = Schedule.objects.filter(student=current_user).get(title=schedule_title)
     
     user_courses = []
@@ -422,7 +423,7 @@ def make_user_event(request):
 
             user_event_course = Section.objects.create_userevent(start_time=start_time, end_time=end_time, days=days)
             
-            current_user = Student.objects.get(user_email=request.user.email)
+            current_user = request.user
             schedule = Schedule.objects.filter(student=current_user).get(title=request.session['active_schedule'])
             user_event = ScheduleCourse.objects.create_schedulecourse(course=user_event_course, schedule=schedule)
             user_event.title = title
@@ -447,7 +448,7 @@ def del_schedule(request):
     schedule_title = request.session['active_schedule']
     
     #TODO: this will break if user doesn't exist
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = user_email=request.user
     schedule = Schedule.objects.filter(student=current_user).get(title=schedule_title)
     # using list() should normally be avoided on a queryset, but it is reasonable to assume
     # that the course_ids set will be very small
@@ -473,7 +474,7 @@ def make_schedule(request):
         data = {'status':'failure'}
         if form.is_valid():
             title = form.cleaned_data['title']
-            current_user = Student.objects.get(user_email=request.user.email)
+            current_user = request.user
             data['title'] = title
             if not Schedule.objects.filter(student=current_user).filter(title=title):
                 data['status'] = 'SUCCESS'
@@ -535,7 +536,7 @@ def schedule(request):
     context = {}
 
     #TODO: breaks if student doesn't exist
-    current_user = Student.objects.get(user_email=request.user.email)
+    current_user = request.user
     
     # if a new user has no schedule, make them their first schedule
     if not current_user.schedule_set.all().exists():
@@ -807,49 +808,25 @@ def prereqs(request):
         'prereqs.html',
         context={'highlight_prereqs':highlight_prereqs, 'form':form, 'course_list':course_list}
     )
-    
-    
-#compsci326
-from django.contrib.auth import logout, login, authenticate
 
 def register(request):
-    
     if request.method == 'POST':
-        request.POST._mutable = True
-        student_form = StudentForm(request.POST)
         user_form = UserForm(request.POST)
-        # this links the UserForm and StudentForm:
-        request.POST['user_email'] = request.POST['email']
-        request.POST._mutable = False
-        if request.POST['email'] not in ['umass.edu', 'cs.umass.edu']:
-            user_form.errors['email'] = ["Please Use Your UMass Email!"]
-            args = {'user_form':user_form, 'student_form':student_form}
-            return render(request, 'registration/registration_form.html', args)
         if user_form.is_valid():
             user_form.save()
-            if student_form.is_valid():
-                student_form.save()
-                new_user = authenticate(
-                    username=user_form.cleaned_data['email'],
-                    password=user_form.cleaned_data['password1'],
-                )
-                login(request, new_user)
+            new_user = authenticate(
+                username=user_form.cleaned_data['email'],
+                password=user_form.cleaned_data['password1'],
+            )
+            login(request, new_user)
             return redirect(reverse('schedule'))
         else:
-            args = {'user_form':user_form, 'student_form':student_form}
+            args = {'user_form':user_form}
             return render(request, 'registration/registration_form.html', args)
     else:
         user_form = UserForm()
-        student_form = StudentForm()
-        args = {'user_form':user_form, 'student_form':student_form}
+        args = {'user_form':user_form}
         return render(request, 'registration/registration_form.html', args)
-    
-    
-def loginPage(request):
-    return render(request, 'registration/login.html', {})
-
-def logoutPage(request):
-    return render(request, 'registration/logout.html', {})
     
 class CourseDetailView(generic.DetailView):
     """

@@ -22,6 +22,6 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('uplanner/', include('schedule.urls')),
-    path('profile/', include('django.contrib.auth.urls')),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('', RedirectView.as_view(url='/uplanner/', permanent=True)),
 ]

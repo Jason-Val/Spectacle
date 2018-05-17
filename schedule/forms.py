@@ -198,43 +198,36 @@ class flowchartForm(forms.Form):
 	depts = map(lambda obj: (obj.code, obj.name), Department.objects.all())
 	
 	departments = forms.TypedChoiceField(choices=depts, coerce=str, empty_value='', help_text="Enter Department")
-
-class StudentForm(forms.ModelForm):
-    error_css_class = "error"
-    user_email = forms.EmailField(widget = forms.HiddenInput(), required=False)
-    class Meta:
-        model = Student
-        fields = {
-            'user_email',
-        }
-    
-    def save(self, commit=True):
-        student = super(StudentForm, self).save(commit=False)
-        student.user_email = self.cleaned_data['user_email']
-        if commit:
-            student.save()
-
-        return student
     
 class UserForm(UserCreationForm):
     error_css_class = "error"
-    first_name = forms.CharField(max_length = 30, required=True)
-    last_name = forms.CharField(max_length = 30, required=True)
     email = forms.EmailField(required=True)
-
+    
     class Meta:
         model = User
         fields = (
-            'first_name',
-            'last_name',
             'password1',
             'password2',
             'email',
         )
+        
+    def clean(self):
+        super().clean()
+        errors = []
+        email = self.cleaned_data['email']
+        email = email.split('@')
+        if len(email) == 1:
+            domain = email[1]
+            if domain == 'umass.edu':
+                return self.cleaned_data
+        else:
+            errors.append(forms.ValidationError("Email must be a valid umass.edu email", code='email_violation'))
+        
+        if len(errors) > 0:
+            raise ValidationError(errors)
+        
     def save(self, commit=True):
         user = super(UserForm, self).save(commit=False)
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
         user.username = self.cleaned_data['email']
         user.email = self.cleaned_data['email']
         if commit:

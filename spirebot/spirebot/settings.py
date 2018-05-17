@@ -14,6 +14,7 @@ BOT_NAME = 'spirebot'
 SPIDER_MODULES = ['spirebot.spiders']
 NEWSPIDER_MODULE = 'spirebot.spiders'
 
+LOG_LEVEL = 'INFO'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'spirebot (+http://www.yourdomain.com)'

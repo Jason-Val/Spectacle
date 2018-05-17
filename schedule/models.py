@@ -148,14 +148,6 @@ class Section(models.Model):
     
     def __str__(self):
         return "{} {}".format(self.clss, self.sid)
-        
-class Student(models.Model):
-    user_email = models.EmailField(unique=True, null=False, blank = False,default='')
-    USERNAME_FIELD = 'user'
-    
-    def __str__(self):
-        return "{}".format(self.user_email)
-    
     
 class ScheduleManager(models.Manager):
     def create_schedule(self, title, student):
@@ -164,7 +156,7 @@ class ScheduleManager(models.Manager):
     
 class Schedule(models.Model):
     title = models.CharField(max_length=100, help_text='User-set title for this schedule')
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, help_text='The user this schedule belongs to')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, help_text='The user this schedule belongs to')
     objects = ScheduleManager()
     
     def __str__(self):
