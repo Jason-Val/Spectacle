@@ -96,10 +96,13 @@ class SectionSpider(scrapy.Spider):
             Meta.objects.create_meta(False)
         
         self.meta = Meta.objects.all()[0]
-        
+        if self.meta.finished:
+            self.meta.term = 1
+            self.meta.dept = 2
+            self.meta.save()
         self.term_index = self.meta.term
-        self.session_index = 2
         self.dept_index = self.meta.dept
+        self.session_index = 2
         self.doAgain = False
     
     def load_deptitem(self, page1_selector, dept):
