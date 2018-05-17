@@ -99,6 +99,7 @@ class SectionSpider(scrapy.Spider):
         if self.meta.finished:
             self.meta.term = 1
             self.meta.dept = 2
+            self.meta.finished = False
             self.meta.save()
         self.term_index = self.meta.term
         self.dept_index = self.meta.dept
