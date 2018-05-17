@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Course, Department, Student, Term, Gened
+from .models import Course, Department, Term, Gened
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.template.loader import render_to_string

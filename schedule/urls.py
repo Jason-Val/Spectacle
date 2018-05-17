@@ -23,7 +23,5 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('prereqs/', views.prereqs, name='prereqs'),
     path('register/', views.register, name='register'),
-    path('login/', views.loginPage, name='login'),
-    path('logout/', views.logoutPage, name='logout'),
     path('prereqs/course/<int:pk>', views.CourseDetailView.as_view(), name='course_detail'),
 ]

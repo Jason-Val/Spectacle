@@ -1,5 +1,5 @@
-from .models import Course, Department, Student, Section, Schedule, ScheduleCourse, Term
-from .forms import ScheduleForm, NewScheduleForm, flowchartForm, StudentForm, UserForm, UserEventForm
+from .models import Course, Department, Section, Schedule, ScheduleCourse, Term
+from .forms import ScheduleForm, NewScheduleForm, flowchartForm, UserForm, UserEventForm
 from django.db import models
 from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.models import AnonymousUser
