@@ -352,7 +352,7 @@ class SectionSpider(scrapy.Spider):
                     self.session_index = 2
                 self.doAgain == False
                 
-                print("=========== Begin Scraping department {} with index {} ===========".format(dept, self.dept_index))
+                print("=========== (term {}) Begin Scraping department {} with index {} ===========".format(self.term_index, dept, self.dept_index))
                 
                 while self.driver.find_elements_by_xpath('//*[@id="CLASS_SRCH_WRK2_SESSION_CODE$12$"]/option['+ str(self.session_index) +']'):
                     try:
@@ -365,7 +365,7 @@ class SectionSpider(scrapy.Spider):
                                     max_attempts=6)
                     #self.retryingFindClick('//*[@id="CLASS_SRCH_WRK2_SESSION_CODE$12$"]/option['+ str(self.session_index) +']') #university
                     
-                    print("=========== Scrape department {} with index {}, session {} ===========".format(dept, self.dept_index, self.session_index))
+                    print("=========== (term {}) Scrape department {} with index {}, session {} ===========".format(self.term_index, dept, self.dept_index, self.session_index))
                     
                     try:
                         search_button = WebDriverWait(self.driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH$29$"]')))
@@ -425,7 +425,7 @@ class SectionSpider(scrapy.Spider):
                         is_open = self.driver.find_element_by_css_selector('#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\\24 ' + str(course_index) + ' > div > img').get_attribute('alt')
                         clss = self.driver.find_element_by_css_selector("[id^='DERIVED_CLSRCH_DESCR200$" + str(course_index) + "']").text
                         
-                        print("=========== Scrape class {}, department {} with index {}, session {}... ===========".format(clss, dept, self.dept_index, self.session_index))
+                        print("=========== (term {}) Scrape class {}, department {} with index {}, session {}... ===========".format(self.term_index, clss, dept, self.dept_index, self.session_index))
                         
                         while  self.driver.find_element_by_css_selector("[id^='ACE_$ICField106$" + str(course_index) + "']").find_elements_by_css_selector("[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$" + str(selector_index) + "']"): 
                             
