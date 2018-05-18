@@ -11,7 +11,7 @@ class spirebotPipeline(object):
 
     def process_item(self, item, spider):
         if ('code' in item.fields and 'code' in item and Department.objects.filter(code = item['code']).exists()):
-            if(item['code'] == Department.object.get(code = item['code']).code):
+            if(item['code'] == Department.objects.get(code = item['code']).code):
                 return
 
         if ('number' in item.fields and 
