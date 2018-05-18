@@ -1,4 +1,5 @@
 from .models import Course, Department, Section, Schedule, ScheduleCourse, Term
+from django.contrib.auth.models import User
 from .forms import ScheduleForm, NewScheduleForm, flowchartForm, UserForm, UserEventForm
 from django.db import models
 from django.contrib.auth import logout, login, authenticate
@@ -11,6 +12,13 @@ from django.views import generic
 from django.http import JsonResponse, QueryDict
 from django.urls import reverse
 from django.db.models import Q
+from django.http import HttpResponse
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.template.loader import render_to_string
+from .tokens import account_activation_token
+from django.core.mail import EmailMessage
 import json
 import re
 import pickle
@@ -86,8 +94,7 @@ def schedule_courses(request):
     #TODO: this will fail if user does not exist
     current_user = request.user
     temp_courses = []
-    if current_user.exists():
-        temp_courses = ScheduleCourse.objects.filter(schedule__student=current_user[0])
+    temp_courses = ScheduleCourse.objects.filter(schedule__student=current_user)
     
     courses = []
 
@@ -97,9 +104,9 @@ def schedule_courses(request):
     schedule = ''
     if 'active_schedule' in request.session:
         schedule = request.session['active_schedule']
-    elif current_user.exists():                         #then just fetch a random schedule
+    else:                     #then just fetch a random schedule
         #TODO: this breaks if doesn't exist
-        schedule = Schedule.objects.filter(student=current_user[0])[0].title
+        schedule = Schedule.objects.filter(student=current_user)[0].title
         request.session['active_schedule'] = schedule
         request.session.save()
     
@@ -813,13 +820,21 @@ def register(request):
     if request.method == 'POST':
         user_form = UserForm(request.POST)
         if user_form.is_valid():
-            user_form.save()
-            new_user = authenticate(
-                username=user_form.cleaned_data['email'],
-                password=user_form.cleaned_data['password1'],
-            )
-            login(request, new_user)
-            return redirect(reverse('schedule'))
+            new_user = user_form.save(commit=False)
+            new_user.is_active = False
+            new_user.save()            
+            current_site = get_current_site(request)
+            message = render_to_string('acc_activate_email.html', {
+                'user':new_user,
+                'domain':current_site.domain,
+                'uid':force_text(urlsafe_base64_encode(force_bytes(new_user.pk))),
+                'token':account_activation_token.make_token(new_user),
+            })
+            mail_subject = 'Activate your Uplanner account!'
+            to_email = user_form.cleaned_data.get('email')
+            email = EmailMessage(mail_subject, message, to=[to_email])
+            email.send()
+            return HttpResponse('Please confirm your email address to complete the registration')
         else:
             args = {'user_form':user_form}
             return render(request, 'registration/registration_form.html', args)
@@ -827,6 +842,22 @@ def register(request):
         user_form = UserForm()
         args = {'user_form':user_form}
         return render(request, 'registration/registration_form.html', args)
+    
+def activate(request, uidb64, token):
+    try:
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user == None:
+        return HttpResponse('System error!')
+    elif not account_activation_token.check_token(user, token):
+        return HttpResponse('Activation link is invalid!')
+    else:
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return HttpResponse('Thank you for your email confirmation. Now you can login your account.')
     
 class CourseDetailView(generic.DetailView):
     """

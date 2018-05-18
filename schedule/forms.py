@@ -216,10 +216,8 @@ class UserForm(UserCreationForm):
         errors = []
         email = self.cleaned_data['email']
         email = email.split('@')
-        if len(email) == 1:
-            domain = email[1]
-            if domain == 'umass.edu':
-                return self.cleaned_data
+        if len(email) == 2 and email[1] == 'umass.edu':
+            return self.cleaned_data
         else:
             errors.append(forms.ValidationError("Email must be a valid umass.edu email", code='email_violation'))
         
