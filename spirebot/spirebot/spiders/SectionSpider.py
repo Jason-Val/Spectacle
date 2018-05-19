@@ -228,9 +228,15 @@ class SectionSpider(scrapy.Spider):
         while (not click_successful) and attempts < max_attempts:
             if success_condition == None or type(success_condition) is str:
                 try:
+                    element = None
+                    while not element == None:
+                        try:
+                            element = self.driver.find_element_by_xpath(xpath)
+                        except EC.NoSuchElementException:
+                            pass
                     with wait_for_page_load(self.driver, success_condition):
                         #self.driver.find_element_by_xpath(xpath).click()
-                        element = self.driver.find_element_by_xpath(xpath).click()
+                        #element = self.driver.find_element_by_xpath(xpath).click()
                         self.driver.execute_script("arguments[0].click();", element)
                     click_successful = True
                 except TimeoutException:
@@ -239,8 +245,16 @@ class SectionSpider(scrapy.Spider):
                 try:
                     #element = self.driver.find_element_by_xpath(xpath)
                     #element.click()
-                    element = self.driver.find_element_by_xpath(xpath).click()
-                    self.driver.execute_script("arguments[0].click();", element)
+                    element = None
+                    while not element == None:
+                        try:
+                            element = self.driver.find_element_by_xpath(xpath)
+                        except EC.NoSuchElementException:
+                            pass
+                    with wait_for_page_load(self.driver, success_condition):
+                        #self.driver.find_element_by_xpath(xpath).click()
+                        #element = self.driver.find_element_by_xpath(xpath).click()
+                        self.driver.execute_script("arguments[0].click();", element)
                     if success_condition(element):
                         click_successful = True
                 except EC.StaleElementReferenceException :
