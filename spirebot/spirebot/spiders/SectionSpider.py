@@ -220,7 +220,6 @@ class SectionSpider(scrapy.Spider):
             except EC.NoSuchElementException:
                 pass
         self.driver.execute_script("arguments[0].click();", element)
-
     
     def safe_click(self, xpath, success_condition=None, max_attempts=6):
         click_successful = False
@@ -228,16 +227,18 @@ class SectionSpider(scrapy.Spider):
         while (not click_successful) and attempts < max_attempts:
             if success_condition == None or type(success_condition) is str:
                 try:
+                    """
                     element = None
                     while not element == None:
                         try:
                             element = self.driver.find_element_by_xpath(xpath)
                         except EC.NoSuchElementException:
                             pass
+                    """
                     with wait_for_page_load(self.driver, success_condition):
-                        #self.driver.find_element_by_xpath(xpath).click()
-                        #element = self.driver.find_element_by_xpath(xpath).click()
-                        self.driver.execute_script("arguments[0].click();", element)
+                        self.driver.find_element_by_xpath(xpath).click()
+                        element = self.driver.find_element_by_xpath(xpath).click()
+                        #self.driver.execute_script("arguments[0].click();", element)
                     click_successful = True
                 except TimeoutException:
                     pass
@@ -245,16 +246,18 @@ class SectionSpider(scrapy.Spider):
                 try:
                     #element = self.driver.find_element_by_xpath(xpath)
                     #element.click()
+                    """
                     element = None
                     while not element == None:
                         try:
                             element = self.driver.find_element_by_xpath(xpath)
                         except EC.NoSuchElementException:
                             pass
+                    """
                     with wait_for_page_load(self.driver, success_condition):
-                        #self.driver.find_element_by_xpath(xpath).click()
-                        #element = self.driver.find_element_by_xpath(xpath).click()
-                        self.driver.execute_script("arguments[0].click();", element)
+                        self.driver.find_element_by_xpath(xpath).click()
+                        element = self.driver.find_element_by_xpath(xpath).click()
+                        #self.driver.execute_script("arguments[0].click();", element)
                     if success_condition(element):
                         click_successful = True
                 except EC.StaleElementReferenceException :
