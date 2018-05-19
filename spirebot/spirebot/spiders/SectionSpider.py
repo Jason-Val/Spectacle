@@ -229,14 +229,18 @@ class SectionSpider(scrapy.Spider):
             if success_condition == None or type(success_condition) is str:
                 try:
                     with wait_for_page_load(self.driver, success_condition):
-                        self.driver.find_element_by_xpath(xpath).click()
+                        #self.driver.find_element_by_xpath(xpath).click()
+                        element = self.driver.find_element_by_xpath(xpath).click()
+                        self.driver.execute_script("arguments[0].click();", element)
                     click_successful = True
                 except TimeoutException:
                     pass
             else:
                 try:
-                    element = self.driver.find_element_by_xpath(xpath)
-                    element.click()
+                    #element = self.driver.find_element_by_xpath(xpath)
+                    #element.click()
+                    element = self.driver.find_element_by_xpath(xpath).click()
+                    self.driver.execute_script("arguments[0].click();", element)
                     if success_condition(element):
                         click_successful = True
                 except EC.StaleElementReferenceException :
@@ -339,12 +343,12 @@ class SectionSpider(scrapy.Spider):
             
             #self.retryingFindClick('//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']')#spring 2018
             
-            self.script_click('//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']')
-            """
+            #self.script_click('//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']')
+            
             self.safe_click('//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']',
                             success_condition=lambda x: x.text != '', 
                             max_attempts=6)
-            """
+            
             term = str(self.driver.find_element_by_xpath('//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']').text) #example  '2018 Spring'
 
             if(term == '1984 Fall'):
@@ -362,12 +366,12 @@ class SectionSpider(scrapy.Spider):
                     pass
                 
                 dept = self.driver.find_element_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']').text
-                self.script_click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')
-                """
+                #self.script_click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')
+                
                 self.safe_click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']',
                            success_condition=lambda x: x.text != '', 
                            max_attempts=6)
-                """
+                
                 #self.retryingFindClick('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')
                 
                 if self.doAgain == False:
@@ -382,12 +386,12 @@ class SectionSpider(scrapy.Spider):
                     except TimeoutException:
                         pass
                     
-                    self.script_click('//*[@id="CLASS_SRCH_WRK2_SESSION_CODE$12$"]/option['+ str(self.session_index) +']')
-                    """
+                    #self.script_click('//*[@id="CLASS_SRCH_WRK2_SESSION_CODE$12$"]/option['+ str(self.session_index) +']')
+                    
                     self.safe_click('//*[@id="CLASS_SRCH_WRK2_SESSION_CODE$12$"]/option['+ str(self.session_index) +']',
                                     success_condition=lambda x: x.text != '', 
                                     max_attempts=6)
-                    """
+                    
                     #self.retryingFindClick('//*[@id="CLASS_SRCH_WRK2_SESSION_CODE$12$"]/option['+ str(self.session_index) +']') #university
                     
                     print("=========== (term {}) Scrape department {} with index {}, session {} ===========".format(self.term_index, dept, self.dept_index, self.session_index))
@@ -399,12 +403,12 @@ class SectionSpider(scrapy.Spider):
                     
                     print("Try clicking Search...")
                     # Click on "Search"
-                    self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH$29$"]')
-                    """
+                    #self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH$29$"]')
+                    
                     self.safe_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH$29$"]',
                                     success_condition='//*[@id="DERIVED_CLSMSG_ERROR_TEXT"]', 
                                     max_attempts=6)
-                    """
+                    
                     print("Successfully clicked!!!")
                     
                     #self.retryingFindClick('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH"]') #start search
@@ -464,11 +468,11 @@ class SectionSpider(scrapy.Spider):
                             except TimeoutException:
                                 pass
                             """
-                            self.script_click('//*[@id="DERIVED_CLSRCH_SSR_CLASSNAME_LONG$'+str(selector_index)+'"]')
-                            """
+                            #self.script_click('//*[@id="DERIVED_CLSRCH_SSR_CLASSNAME_LONG$'+str(selector_index)+'"]')
+                            
                             self.safe_click('//*[@id="DERIVED_CLSRCH_SSR_CLASSNAME_LONG$'+str(selector_index)+'"]',
                                             max_attempts=6)
-                            """
+                            
                             #self.retryingFindClick_css("[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$" + str(selector_index) + "']") #finds the first section for a course
 
                             try:
@@ -484,11 +488,11 @@ class SectionSpider(scrapy.Spider):
 
                             yield self.load_sectionitem(page1_selector, page2_selector, term, is_open, clss, selector_index, self.term_index, course_index)
                             
-                            self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_BACK"]')
-                            """
+                            #self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_BACK"]')
+                            
                             self.safe_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_BACK"]',
                                             max_attempts=6)
-                            """
+                            
                             #self.retryingFindClick_css("[id^='CLASS_SRCH_WRK2_SSR_PB_BACK']") #clicks on view search results to go back
                             
                             try:
@@ -509,11 +513,11 @@ class SectionSpider(scrapy.Spider):
                     except TimeoutException:
                         pass
                         
-                    self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH"]')
-                    """
+                    #self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH"]')
+                    
                     self.safe_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH"]',
                                     max_attempts=6)
-                    """
+                    
                     #self.retryingFindClick_css("[id^='CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH']")
                     
                     try:
