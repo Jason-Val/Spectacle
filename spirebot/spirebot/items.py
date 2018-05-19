@@ -199,8 +199,8 @@ class ItemLoader(ItemLoader):
 
         time = re.sub(r'[APM]+','', start_time).split(':') #5:15PM becomes ["5","15"]
         if 'PM' in input_str and int(time[0]) < 12:
-                time[0] = str(int(time[0]) + 12)
-            return str(time[0]) + ':' +str(time[1]) + ':00'
+            time[0] = str(int(time[0]) + 12)
+        return str(time[0]) + ':' +str(time[1]) + ':00'
 
     def proc_ending(input_str):
         
