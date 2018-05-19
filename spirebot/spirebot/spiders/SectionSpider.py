@@ -210,16 +210,21 @@ class SectionSpider(scrapy.Spider):
 
         return section_loader.load_item()
     
-    def script_click(self, xpath):
+    def script_click(self, xpath, stale_element=None):
         found_element = False
         element = None
-        while not found_element:
+        click_successful = False
+        while (not click_successful):
             try:
-                element = self.driver.find_element_by_xpath(xpath)
-                found_element = True
-            except EC.NoSuchElementException:
+                with wait_for_page_load(self.driver, stale_element):
+                    #self.driver.find_element_by_xpath(xpath).click()
+                    element = self.driver.find_element_by_xpath(xpath)
+                    self.driver.execute_script("arguments[0].click();", element)
+                click_successful = True
+            except TimeoutException:
                 pass
-        self.driver.execute_script("arguments[0].click();", element)
+            #element = self.driver.find_element_by_xpath(xpath)
+            #self.driver.execute_script("arguments[0].click();", element)
     
     def safe_click(self, xpath, success_condition=None, max_attempts=6):
         click_successful = False
@@ -422,12 +427,12 @@ class SectionSpider(scrapy.Spider):
                     
                     print("Try clicking Search...")
                     # Click on "Search"
-                    #self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH$29$"]')
-                    
+                    self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH$29$"]', '//*[@id="DERIVED_CLSMSG_ERROR_TEXT"]')
+                    """
                     self.safe_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH$29$"]',
                                     success_condition='//*[@id="DERIVED_CLSMSG_ERROR_TEXT"]', 
                                     max_attempts=6)
-                    
+                    """
                     print("Successfully clicked!!!")
                     
                     #self.retryingFindClick('//*[@id="CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH"]') #start search
@@ -487,11 +492,11 @@ class SectionSpider(scrapy.Spider):
                             except TimeoutException:
                                 pass
                             """
-                            #self.script_click('//*[@id="DERIVED_CLSRCH_SSR_CLASSNAME_LONG$'+str(selector_index)+'"]')
-                            
+                            self.script_click('//*[@id="DERIVED_CLSRCH_SSR_CLASSNAME_LONG$'+str(selector_index)+'"]')
+                            """
                             self.safe_click('//*[@id="DERIVED_CLSRCH_SSR_CLASSNAME_LONG$'+str(selector_index)+'"]',
                                             max_attempts=6)
-                            
+                            """
                             #self.retryingFindClick_css("[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$" + str(selector_index) + "']") #finds the first section for a course
 
                             try:
@@ -507,11 +512,11 @@ class SectionSpider(scrapy.Spider):
 
                             yield self.load_sectionitem(page1_selector, page2_selector, term, is_open, clss, selector_index, self.term_index, course_index)
                             
-                            #self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_BACK"]')
-                            
+                            self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_BACK"]')
+                            """
                             self.safe_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_BACK"]',
                                             max_attempts=6)
-                            
+                            """
                             #self.retryingFindClick_css("[id^='CLASS_SRCH_WRK2_SSR_PB_BACK']") #clicks on view search results to go back
                             
                             try:
@@ -532,11 +537,11 @@ class SectionSpider(scrapy.Spider):
                     except TimeoutException:
                         pass
                         
-                    #self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH"]')
-                    
+                    self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH"]')
+                    """
                     self.safe_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH"]',
                                     max_attempts=6)
-                    
+                    """
                     #self.retryingFindClick_css("[id^='CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH']")
                     
                     try:
