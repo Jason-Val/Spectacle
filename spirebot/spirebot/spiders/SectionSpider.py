@@ -237,7 +237,7 @@ class SectionSpider(scrapy.Spider):
                     """
                     with wait_for_page_load(self.driver, success_condition):
                         self.driver.find_element_by_xpath(xpath).click()
-                        element = self.driver.find_element_by_xpath(xpath).click()
+                        #element = self.driver.find_element_by_xpath(xpath)
                         #self.driver.execute_script("arguments[0].click();", element)
                     click_successful = True
                 except TimeoutException:
@@ -256,11 +256,11 @@ class SectionSpider(scrapy.Spider):
                     """
                     with wait_for_page_load(self.driver, success_condition):
                         self.driver.find_element_by_xpath(xpath).click()
-                        element = self.driver.find_element_by_xpath(xpath).click()
+                        #element = self.driver.find_element_by_xpath(xpath)
                         #self.driver.execute_script("arguments[0].click();", element)
                     if success_condition(element):
                         click_successful = True
-                except EC.StaleElementReferenceException :
+                except EC.StaleElementReferenceException:
                     pass
                 except EC.NoSuchElementException:
                     pass
@@ -279,7 +279,7 @@ class SectionSpider(scrapy.Spider):
             except EC.StaleElementReferenceException :
                 pass
             except EC.NoSuchElementException:
-                break     
+                break
 
             attempts = attempts + 1
         return result
