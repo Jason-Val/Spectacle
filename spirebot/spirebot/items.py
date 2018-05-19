@@ -190,15 +190,18 @@ class ItemLoader(ItemLoader):
 
         start_time = None
 
+        if(input_str == 'TBA'):
+            return '00:00:00'
+        
         daytime_list = re.split(r'[\s-]+', input_str)
 
         if 'Mo' not in input_str and 'Tu' not in input_str and 'We' not in input_str and 'Th' not in input_str and 'Fr' not in input_str and 'Sa' not in input_str and 'Su' not in input_str:
             start_time = daytime_list[0]
         else:
             start_time = daytime_list[1]
-
+        
         time = re.sub(r'[APM]+','', start_time).split(':') #5:15PM becomes ["5","15"]
-        if 'PM' in input_str and int(time[0]) < 12:
+        if 'PM' in start_time and int(time[0]) < 12:
             time[0] = str(int(time[0]) + 12)
         return str(time[0]) + ':' +str(time[1]) + ':00'
 
@@ -217,7 +220,7 @@ class ItemLoader(ItemLoader):
             end_time = daytime_list[2]
             
         time = re.sub(r'[APM]+','',end_time).split(':')
-        if 'PM' in input_str and int(time[0]) < 12:
+        if 'PM' in end_time and int(time[0]) < 12:
             time[0] = str(int(time[0]) + 12)
         return str(time[0]) + ':' +str(time[1]) + ':00'
 
