@@ -219,7 +219,7 @@ class SectionSpider(scrapy.Spider):
                 found_element = True
             except EC.NoSuchElementException:
                 pass
-        driver.execute_script("arguments[0].click();", element)
+        self.driver.execute_script("arguments[0].click();", element)
 
     
     def safe_click(self, xpath, success_condition=None, max_attempts=6):
