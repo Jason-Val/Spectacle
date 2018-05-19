@@ -236,18 +236,18 @@ class SectionSpider(scrapy.Spider):
                             pass
                     """
                     with wait_for_page_load(self.driver, success_condition):
-                        #self.driver.find_element_by_xpath(xpath).click()
-                        element = self.driver.find_element_by_xpath(xpath)
-                        self.driver.execute_script("arguments[0].click();", element)
+                        self.driver.find_element_by_xpath(xpath).click()
+                        #element = self.driver.find_element_by_xpath(xpath)
+                        #self.driver.execute_script("arguments[0].click();", element)
                     click_successful = True
                 except TimeoutException:
                     pass
             else:
                 try:
-                    element = self.driver.find_element_by_xpath(xpath)
-                    self.driver.execute_script("arguments[0].click();", element)
                     #element = self.driver.find_element_by_xpath(xpath)
-                    #element.click()
+                    #self.driver.execute_script("arguments[0].click();", element)
+                    element = self.driver.find_element_by_xpath(xpath)
+                    element.click()
                     """
                     element = None
                     while not element == None:
