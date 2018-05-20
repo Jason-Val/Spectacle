@@ -28,7 +28,8 @@ class Meta(models.Model):
     finished = models.BooleanField()
     term = models.IntegerField()
     dept = models.IntegerField()
-    
+    course = models.IntegerField(default=0)
+    session = models.IntegerField(default=2)
     objects = MetaManager()
     
 class Gened(models.Model):
