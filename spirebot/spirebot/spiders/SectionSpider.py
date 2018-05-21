@@ -324,7 +324,7 @@ class SectionSpider(scrapy.Spider):
                 except NoSuchElementException:
                     pass
                 if new_error != None:
-                    print("---found an error message (new or stale)---")
+                    #print("---found an error message (new or stale)---")
                     if old_error != None and new_error.id != old_error.id:
                         #print("---error is not stale---")
                         page_updated = True
