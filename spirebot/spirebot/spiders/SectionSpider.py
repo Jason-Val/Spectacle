@@ -282,7 +282,7 @@ class SectionSpider(scrapy.Spider):
         ignored_exceptions=(EC.NoSuchElementException,EC.StaleElementReferenceException,)
         element = None
         try:
-            element = WebDriverWait(driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,xpath)))
+            element = WebDriverWait(self.driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,xpath)))
         except TimeoutException:
             pass
         element.click()
@@ -293,7 +293,7 @@ class SectionSpider(scrapy.Spider):
         ignored_exceptions=(EC.NoSuchElementException,EC.StaleElementReferenceException,)
         element = None
         try:
-            element = WebDriverWait(driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,xpath)))
+            element = WebDriverWait(self.driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,xpath)))
         except TimeoutException:
             pass
         
