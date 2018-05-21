@@ -455,7 +455,12 @@ class SectionSpider(scrapy.Spider):
                     pass
                 """
                 self.click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')
-                dept = self.driver.find_element_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']').text
+                dept = None
+                while dept == None:
+                    try:
+                        dept = self.driver.find_element_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']').text
+                    except StaleElementReferenceException:
+                        pass
                 #self.script_click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')
                 """
                 self.safe_click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']',
