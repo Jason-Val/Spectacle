@@ -558,6 +558,7 @@ class SectionSpider(scrapy.Spider):
                     except TimeoutException:
                         pass
                     
+                    print("Check individual courses starting with ", str(self.course_index))
                     
                     while self.driver.find_elements_by_css_selector("[id^='ACE_$ICField106$" + str(self.course_index) + "']"):
                         is_course = False
