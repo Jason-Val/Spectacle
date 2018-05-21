@@ -544,8 +544,8 @@ class SectionSpider(scrapy.Spider):
                         self.course_index = 0
                         self.meta.course = self.course_index
                         self.meta.save()
-                        initial_loop = False
                     else:
+                        initial_loop = False
                         self.course_index = self.meta.course
                     selector_index = self.course_index #count of the links on the page
 
