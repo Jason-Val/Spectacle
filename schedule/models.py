@@ -62,7 +62,7 @@ class Term(models.Model):
 class Course(models.Model):
     title = models.CharField(max_length=200, help_text="Enter the descriptive course title")
     dept = models.ForeignKey(Department, on_delete=models.CASCADE, help_text="Enter the course's department")
-    number = models.CharField(max_length=6, help_text="Enter the course's title number (220 in COMPSCI 220)")
+    number = models.CharField(max_length=20, help_text="Enter the course's title number (220 in COMPSCI 220)")
     description = models.TextField(max_length=1000, help_text="Enter the course description")
     reqs = models.TextField(max_length=1000, blank=True, default="", help_text="Enter the course requirements")
     credits = models.CharField(max_length=4, help_text="Enter # of credits")
