@@ -154,7 +154,7 @@ class SectionSpider(scrapy.Spider):
 
         return course_loader.load_item()
 
-    def load_sectionitem(self, page1_selector, page2_selector, term, is_open, clss, section_index, term_index, course_index): 
+    def load_sectionitem(self, page1_selector, page2_selector, term, is_open, clss, section_index, term_index, self.course_index): 
         section_loader = ItemLoader(item = SectionItem(), selector = page2_selector)
 
         section_loader.add_xpath('sid', '//*[@id="SSR_CLS_DTL_WRK_CLASS_NBR"]')
@@ -178,8 +178,8 @@ class SectionSpider(scrapy.Spider):
         section_loader.selector = page1_selector
         section_loader.add_value('open', is_open)
         
-        if( page1_selector.css("[id^='DERIVED_CLSRCH_DESCR200$" + str(course_index) + "']").extract_first() != None):
-            words = replace_escape_chars(remove_tags(page1_selector.css("[id^='DERIVED_CLSRCH_DESCR200$" + str(course_index) + "']").extract_first())).split()
+        if( page1_selector.css("[id^='DERIVED_CLSRCH_DESCR200$" + str(self.course_index) + "']").extract_first() != None):
+            words = replace_escape_chars(remove_tags(page1_selector.css("[id^='DERIVED_CLSRCH_DESCR200$" + str(self.course_index) + "']").extract_first())).split()
 
             title = ''     
 
@@ -609,7 +609,7 @@ class SectionSpider(scrapy.Spider):
                             selector_index = selector_index + 1
 
                         try:
-                            WebDriverWait(self.driver, 10, ignored_exceptions = ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"[id^='ACE_$ICField106$" + str(course_index) + "']"))) #wait for page to load
+                            WebDriverWait(self.driver, 10, ignored_exceptions = ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"[id^='ACE_$ICField106$" + str(self.course_index) + "']"))) #wait for page to load
                         except TimeoutException:
                             pass
                         self.course_index = self.course_index + 1
