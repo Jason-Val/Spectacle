@@ -542,6 +542,8 @@ class SectionSpider(scrapy.Spider):
                     page1_selector = Selector(text = self.driver.page_source) #maybe page hasn't loaded completely and need to wait longer??
                     if not initial_loop:
                         self.course_index = 0
+                        self.meta.course = self.course_index
+                        self.meta.save()
                         initial_loop = False
                     else:
                         self.course_index = self.meta.course
