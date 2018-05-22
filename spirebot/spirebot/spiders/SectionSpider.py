@@ -92,11 +92,14 @@ class SectionSpider(scrapy.Spider):
         chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
         
+        print("============ Starting Spider!!! ============")
+        
         if not Meta.objects.all().exists():
             Meta.objects.create_meta(False)
         
         self.meta = Meta.objects.all()[0]
         if self.meta.finished:
+            print("============ Setting a new meta object ============")
             self.meta.term = 1
             self.meta.dept = 2
             self.meta.finished = False
@@ -108,7 +111,7 @@ class SectionSpider(scrapy.Spider):
         self.course_index = self.meta.course
         self.session_index = self.meta.session
         self.doAgain = False
-    
+            
     def load_deptitem(self, page1_selector, dept):
         dept_loader = ItemLoader(item = DepartmentItem(), selector = page1_selector)
 
@@ -443,9 +446,6 @@ class SectionSpider(scrapy.Spider):
                 last_term = True
             option_selector = Selector(text = self.driver.page_source)
             yield self.load_termitem(option_selector, self.term_index)
-            
-            if self.doAgain == False:
-                self.dept_index = 2
 
             while self.driver.find_elements_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']'):
                 """
