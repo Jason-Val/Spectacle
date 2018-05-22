@@ -131,6 +131,8 @@ class ScheduleForm(forms.Form):
     def clean(self):
         super().clean()
         
+        print("==============Begin cleaning data===============")
+        
         #retrieve all courses in requested term
         term = Term.objects.get(id=self.cleaned_data['course_term'])
         results = Course.objects.select_related().filter(section__term=term).order_by('dept__code', 'number')
