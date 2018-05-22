@@ -607,10 +607,7 @@ def schedule(request):
     
     #results_exist = True
     if form.is_valid():
-        print("******Form is valid!!!")
         results = form.cleaned_data['results']
-        print("Len of results received is: ", len(results))
-        sys.stdout.flush()
         """
         #retrieve all courses in requested term
         term = Term.objects.get(id=form.cleaned_data['course_term'])
@@ -760,7 +757,6 @@ def schedule(request):
                              'credits': r.credits,
                              'pk': r.pk,
                              }, results)
-    
     return render (
         request,
         'schedule.html',

@@ -305,45 +305,40 @@
             
             <!-- Begin search results -->
             <div class="tab-pane show active" id="results">
-              <!--TODO urgent: change formatting-->
-              <!--{% if results_exist %}-->
-                <ul class="list-group fixed-panel">
-                {% for course in results %}
-                  <li class="list-group-item js-expand-block">
-                    <button class="btn js-expand-btn btn-primary btn-xs btn-results">+</button>{{ course.dept.code }} {{ course.number }} - {{ course.title }}
-                    <div class="js-expand-info">
-                      <!-- Begin column information -->
-                      <div class="row">
-                        <!-- Left column -->
-                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                          {% if course.open == False %}<p>Course is closed</p>{% endif %}
-                          {% if course.lab == True %}<p>Course has labs</p>{% endif %}
-                        </div>
-                        <!-- Right column -->
-                        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-                          {% if course.conflicts == True %}<p>Course conflicts</p>{% endif %}
-                          <p>Credits: {{course.credits}}</p>
-                        </div>
+              <ul class="list-group fixed-panel">
+              {% for course in results %}
+                <li class="list-group-item js-expand-block">
+                  <button class="btn js-expand-btn btn-primary btn-xs btn-results">+</button>{{ course.dept.code }} {{ course.number }} - {{ course.title }}
+                  <div class="js-expand-info">
+                    <!-- Begin column information -->
+                    <div class="row">
+                      <!-- Left column -->
+                      <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                        {% if course.open == False %}<p>Course is closed</p>{% endif %}
+                        {% if course.lab == True %}<p>Course has labs</p>{% endif %}
                       </div>
-                      <!-- Begin block information -->
-                      <p><strong>Description:</strong> {{course.description}}</p>
-                      <p><strong>Restrictions:</strong> {{course.reqs}}</p>
-                      {% if course.geneds %}
-                        <p><strong>Geneds:</strong>
-                        {% for gened in course.geneds %}
-                          {{gened}}
-                        {% endfor %} </p>
-                      {% endif %}
-                    
+                      <!-- Right column -->
+                      <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                        {% if course.conflicts == True %}<p>Course conflicts</p>{% endif %}
+                        <p>Credits: {{course.credits}}</p>
+                      </div>
                     </div>
-                    <br>
-                    <button class="btn btn-fullInfo btn-xs btn-results js-make-tab" course-id="{{course.pk}}" course-dept="{{ course.dept.code }}" course-num="{{ course.number }}">View course times</button>
-                  </li>
-                {% endfor %}
-                </ul>
-              <!--{% else %}
-                <div class="fixed-panel"><p>No courses match your search</p></div>
-              {% endif %}-->
+                    <!-- Begin block information -->
+                    <p><strong>Description:</strong> {{course.description}}</p>
+                    <p><strong>Restrictions:</strong> {{course.reqs}}</p>
+                    {% if course.geneds %}
+                      <p><strong>Geneds:</strong>
+                      {% for gened in course.geneds %}
+                        {{gened}}
+                      {% endfor %} </p>
+                    {% endif %}
+                  
+                  </div>
+                  <br>
+                  <button class="btn btn-fullInfo btn-xs btn-results js-make-tab" course-id="{{course.pk}}" course-dept="{{ course.dept.code }}" course-num="{{ course.number }}">View course times</button>
+                </li>
+              {% endfor %}
+              </ul>
             </div>
             
             <!-- Begin current courses -->
