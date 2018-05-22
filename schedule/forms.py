@@ -7,6 +7,9 @@ from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 import pickle
 
+from django.db.models import Q
+from .models import ScheduleCourse
+
 # ============== START custom widget and field for geneds =================== #
 # multivaluefield based off https://gist.github.com/elena/3915748
 class MultiWidgetCheckbox(forms.MultiWidget):
@@ -120,18 +123,153 @@ class ScheduleForm(forms.Form):
     start_time = forms.TimeField(required=False, label="Start time")
     end_time = forms.TimeField(required=False, label="End time")
     
-    # make either departments or keywords mandatory; at least one must be filled in
+    def __init__(self, schedule, *args, **kwargs):
+        self.schedule = schedule
+        super(ScheduleForm, self).__init__(*args, **kwargs)
+    
+    # retrieve courses and throw error if too many or none at all
     def clean(self):
         super().clean()
         
-        if self.cleaned_data.get('keywords') == "Enter keywords...":
-            self.cleaned_data['keywords'] = ''
+        #retrieve all courses in requested term
+        term = Term.objects.get(id=self.cleaned_data['course_term'])
+        results = Course.objects.select_related().filter(section__term=term).order_by('dept__code', 'number')
         
-        department = self.cleaned_data.get('departments')
-        keywords = self.cleaned_data.get('keywords')
+        #filter based on department
+        if self.cleaned_data['departments'] != 'NULL':
+            results = results.filter(dept__code=self.cleaned_data['departments'])
         
-        if department == 'NULL' and keywords == '':
-            msg = forms.ValidationError("Values must be given for \"keywords\", \"departments\", or both.", code='blank')            
+        #filter based on keywords
+        if self.cleaned_data['keywords'] != '' and self.cleaned_data['keywords'] != 'Enter keywords...':
+            keys = self.cleaned_data['keywords']
+            title_filter = Q(title__icontains=keys)
+            desc_filter = Q(description__icontains=keys)
+            level_filter = Q(number=keys)
+            
+            results = results.filter(title_filter | desc_filter | level_filter).distinct()
+        
+        #filter based on days
+        #if a course has at least one related section with days
+        #  containing day, keep it in the results.
+        #TODO: this should have more intelligent filtering. What about courses with a lab on Fri, but no lectures?
+        #      it probably shouldn't show up, but it will
+        days_filter = None
+        for day in self.days:
+            if self.cleaned_data[day]:
+                if days_filter == None:
+                    days_filter = Q(section__days__contains=day[:2])
+                else:
+                    days_filter = days_filter | Q(section__days__contains=day[:2])
+        
+        if days_filter != None:
+            results = results.select_related().filter(days_filter).distinct()
+        
+        #filter based on course level
+        levels_filter = None
+        for level in self.levels:
+            if self.cleaned_data[level]:
+                course_level = level[1]
+                if course_level == '5':
+                    course_level = '[5-9]'
+                regex = r'\w*' + course_level + '\d{2}\w*'
+                if levels_filter == None:
+                    levels_filter = Q(number__iregex=regex)
+                else:
+                    levels_filter = levels_filter | Q(number__iregex=regex)
+        if levels_filter != None:
+            results = results.filter(levels_filter)
+            
+        #filter based on number of credits
+        credits_filter = None
+        for credit in self.credits:
+            if self.cleaned_data[credit]:
+                credit_level = credit[2]
+                regex = credit_level + '|[1-' + credit_level +' ]-[' + credit_level + '-9]'
+                if credit_level == '5':
+                    regex = r'[' + credit_level + '-9]|[1-' + credit_level +' ]-[' + credit_level + '-9]'
+                if credits_filter == None:
+                    credits_filter = Q(credits__iregex=regex)
+                else:
+                    credits_filter = credits_filter | Q(credits__iregex=regex)
+        if credits_filter != None:
+            results = results.filter(credits_filter)
+            
+        # filter based on whether a course has open sections
+        if not self.cleaned_data['closed']:
+            results = results.select_related().filter(section__open=True).distinct()
+        
+        # filter out all non-honors courses
+        if self.cleaned_data['honors_only']:
+            results = results.filter(honors=True)
+        
+        # filter based on whether course satisfies one of the requested geneds
+        # TODO: order by number of geneds satisfied
+        if self.cleaned_data['geneds']:
+            geneds = pickle.loads(self.cleaned_data['geneds'])
+            gened_filter = None
+            any_selected = False
+            for gened, selected in geneds.items():
+                if selected:
+                    any_selected = True
+                    if gened_filter == None:
+                        gened_filter = Q(gened__code=gened)
+                    else:
+                        gened_filter = gened_filter | Q(gened__code=gened)
+            if any_selected:
+                results = results.filter(gened_filter)
+                
+                
+        if self.cleaned_data['start_time']:
+            results = results.select_related().filter(section__start__gte=self.cleaned_data['start_time'])
+        
+        if self.cleaned_data['end_time']:
+            results = results.select_related().filter(section__ending__lte=self.cleaned_data['end_time'])
+        
+        # filter out all courses that conflict with current courses
+        if not self.cleaned_data['conflicted']:
+            current_courses = ScheduleCourse.objects.filter(schedule=self.schedule)
+            # for every course in results, display it if:
+            #   it has at least one section with a time/day that does not conflict with any
+            #   of the courses in current_courses
+            
+            # option 1: regex. option 2: boolean fields
+            conflicts = current_courses.values_list('course__days', 'course__start', 'course__ending').distinct()
+            #conflicts = current_courses.values_list('course__mon', 'course__tue', 'course__wed', 'course__thu', 'course__fri', 'course__start', 'course__ending').distinct()
+            
+            #enable for regex:
+            days = set()
+            for day_set, start, end in conflicts:
+                for i in range(0, len(day_set), 2):
+                    if not day_set[i:i+2] in days:
+                        days.add((day_set[i:i+2], start, end))
+            
+            
+            # A list of tuples which current courses can't conflict with [(day, start, end), ...]
+            conflicts = days
+            
+            
+            for section in conflicts:
+                # uses regex
+                day_filter = Q(section__days__iregex=r'(\w\w)*(' + section[0] + ')(\w\w)*')
+                
+                #regex
+                start_filter = Q(section__start__gte=section[2]) # the new course starts after the old course ends
+                end_filter = Q(section__ending__lte=section[1])  # the new course ends before the old course starts
+                
+                results = results.select_related().exclude(day_filter &  ~(start_filter | end_filter)).distinct()
+                
+                
+        results = results.distinct()
+        self.cleaned_data['results'] = results
+        
+        if len(results) == 0:
+            msg = forms.ValidationError("Search was too narrow; no courses match filters", code='blank')            
+            raise ValidationError([
+                msg,
+            ])
+            
+        if len(results) > 300:
+            msg = forms.ValidationError("Too many courses match. Narrow your search criteria.", code='blank')            
             raise ValidationError([
                 msg,
             ])

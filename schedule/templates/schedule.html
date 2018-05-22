@@ -166,9 +166,9 @@
                       gened filters
                       <span class="caret"></span>
                     </a>
-                    <!--ul class="dropdown-menu search-container">
+                    <ul class="dropdown-menu search-container">
                       {{ form.geneds }}
-                    </ul-->
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -313,7 +313,8 @@
             
             <!-- Begin search results -->
             <div class="tab-pane show active" id="results">
-              {% if results_exist %}
+              <!--TODO urgent: change formatting-->
+              <!--{% if results_exist %}-->
                 <ul class="list-group fixed-panel">
                 {% for course in results %}
                   <li class="list-group-item js-expand-block">
@@ -348,9 +349,9 @@
                   </li>
                 {% endfor %}
                 </ul>
-              {% else %}
+              <!--{% else %}
                 <div class="fixed-panel"><p>No courses match your search</p></div>
-              {% endif %}
+              {% endif %}-->
             </div>
             
             <!-- Begin current courses -->
