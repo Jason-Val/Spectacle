@@ -131,6 +131,8 @@ class ScheduleForm(forms.Form):
     def clean(self):
         super().clean()
         
+        print("==============Begin cleaning data===============")
+        
         #retrieve all courses in requested term
         term = Term.objects.get(id=self.cleaned_data['course_term'])
         results = Course.objects.select_related().filter(section__term=term).order_by('dept__code', 'number')
@@ -261,15 +263,18 @@ class ScheduleForm(forms.Form):
                 
         results = results.distinct()
         self.cleaned_data['results'] = results
+        self.cleaned_data
+        
+        print("**************8Length of results is: ", len(results))
         
         if len(results) == 0:
-            msg = forms.ValidationError("Search was too narrow; no courses match filters", code='blank')            
+            msg = forms.ValidationError("Search was too narrow; no courses match filters", code='narrow')            
             raise ValidationError([
                 msg,
             ])
             
         if len(results) > 300:
-            msg = forms.ValidationError("Too many courses match. Narrow your search criteria.", code='blank')            
+            msg = forms.ValidationError("Too many courses match. Narrow your search criteria.", code='wide')            
             raise ValidationError([
                 msg,
             ])

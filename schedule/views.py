@@ -606,6 +606,7 @@ def schedule(request):
     
     #results_exist = True
     if form.is_valid():
+        print("******Form is valid!!!")
         results = form.cleaned_data['results']
         """
         #retrieve all courses in requested term
@@ -760,7 +761,7 @@ def schedule(request):
     return render (
         request,
         'schedule.html',
-        {'highlight_schedule':highlight_schedule, """'results_exist':results_exist,""" 'filters_expanded':filters_expanded, 'form':form, 'user_event_form':user_event_form, 'schedule_form':schedule_form, 'results':results, 'course_tabs':course_tabs, 'user_schedules':user_schedules, 'user_courses':user_courses,}
+        {'highlight_schedule':highlight_schedule, 'filters_expanded':filters_expanded, 'form':form, 'user_event_form':user_event_form, 'schedule_form':schedule_form, 'results':results, 'course_tabs':course_tabs, 'user_schedules':user_schedules, 'user_courses':user_courses,}
     )
     
 
