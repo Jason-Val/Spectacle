@@ -510,7 +510,7 @@ def schedule(request):
     It handles rendering the entire page in accordance with all sub-rendering functions
     """
     
-    
+    """
     form = None
     
     #If GET is not empty (ie, if the user has searched for something), use those search parameters to
@@ -530,6 +530,7 @@ def schedule(request):
         form = ScheduleForm(updated_get)
     else:
         form = ScheduleForm(initial={'keywords': 'Enter keywords...'})
+    """
     
     schedule_form = NewScheduleForm(request.GET)
     user_event_form = UserEventForm()
@@ -583,10 +584,30 @@ def schedule(request):
         request.session['filters_expanded'] = filters_expanded
         request.session.save()
     
-    results_exist = True
+    form = None
+    
+    #If GET is not empty (ie, if the user has searched for something), use those search parameters to
+    # populate form and get search results
+    #If they have not, then populate search form based on initial values
+    # (TODO -- ask Tim why 'next' is in url after logging in
+    if len(request.GET) and not (len(request.GET) == 1 and 'next' in request.GET):
+        
+        # copy request.GET into custom QueryDict
+        updated_get = QueryDict(mutable=True)
+        for k, v in request.GET.items():
+                updated_get[k] = v
+        
+        # if user has deleted keywords, replace with prompt 'Enter keywords...'
+        if 'keywords' in updated_get and updated_get['keywords'] == '':
+            updated_get['keywords'] = 'Enter keywords...'
+        form = ScheduleForm(schedule, updated_get)
+    else:
+        form = ScheduleForm(schedule, initial={'keywords': 'Enter keywords...'})
+    
+    #results_exist = True
     if form.is_valid():
-        
-        
+        results = form.cleaned_data['results']
+        """
         #retrieve all courses in requested term
         term = Term.objects.get(id=form.cleaned_data['course_term'])
         results = Course.objects.select_related().filter(section__term=term).order_by('dept__code', 'number')
@@ -717,6 +738,7 @@ def schedule(request):
         # Display error - no search results match
         if len(results) == 0:
             results_exist = False
+        """
         
     # Todo: can there be too many results? (probably)
     
@@ -738,7 +760,7 @@ def schedule(request):
     return render (
         request,
         'schedule.html',
-        {'highlight_schedule':highlight_schedule, 'results_exist':results_exist, 'filters_expanded':filters_expanded, 'form':form, 'user_event_form':user_event_form, 'schedule_form':schedule_form, 'results':results, 'course_tabs':course_tabs, 'user_schedules':user_schedules, 'user_courses':user_courses,}
+        {'highlight_schedule':highlight_schedule, """'results_exist':results_exist,""" 'filters_expanded':filters_expanded, 'form':form, 'user_event_form':user_event_form, 'schedule_form':schedule_form, 'results':results, 'course_tabs':course_tabs, 'user_schedules':user_schedules, 'user_courses':user_courses,}
     )
     
 
