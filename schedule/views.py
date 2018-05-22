@@ -19,6 +19,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from .tokens import account_activation_token
 from django.core.mail import EmailMessage
+import sys
 import json
 import re
 import pickle
@@ -608,6 +609,8 @@ def schedule(request):
     if form.is_valid():
         print("******Form is valid!!!")
         results = form.cleaned_data['results']
+        print("Len of results received is: ", len(results))
+        sys.stdout.flush()
         """
         #retrieve all courses in requested term
         term = Term.objects.get(id=form.cleaned_data['course_term'])
