@@ -158,6 +158,9 @@ class ItemLoader(ItemLoader):
         return input_object
 
     def proc_days(input_str):
+    
+        print("\t******* Processing Section days: {} *******".format(input_str))
+        
         if ('Mo' not in input_str and 
             'Tu' not in input_str and 
             'We' not in input_str and 
