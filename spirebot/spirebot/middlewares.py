@@ -6,6 +6,7 @@
 # http://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+from decouple import config
 
 
 class SpirebotSpiderMiddleware(object):
@@ -38,11 +39,12 @@ class SpirebotSpiderMiddleware(object):
     def process_spider_exception(self, response, exception, spider):
         # Called when a spider or process_spider_input() method
         # (from other spider middleware) raises an exception.
-
+        
         # Should return either None or an iterable of Response, dict
         # or Item objects.
+        
         pass
-
+        
     def process_start_requests(self, start_requests, spider):
         # Called with the start requests of the spider, and works
         # similarly to the process_spider_output() method, except

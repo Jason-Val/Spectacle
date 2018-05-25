@@ -97,6 +97,8 @@ ITEM_PIPELINES = {
 # Setting up django's project full path.
 import sys
 sys.path.append('../spectacle')
+sys.path.append('../uplanner')
+sys.path.append('../')
 
 # Setting up django's settings module name.
 # This module is located at /home/rolando/projects/myweb/myweb/settings.py.
