@@ -8,8 +8,12 @@
 from schedule.models import Term, Department, Course, Section, Gened
 
 class spirebotPipeline(object):
-
+    
     def process_item(self, item, spider):
+        
+        if ('sid' in item.fields):
+            print("\t******* Prepare to add a new Section with SID {} *******".format(item['sid']))
+        
         if ('code' in item.fields and 'code' in item and Department.objects.filter(code = item['code']).exists()):
             if(item['code'] == Department.objects.get(code = item['code']).code):
                 return
@@ -26,6 +30,8 @@ class spirebotPipeline(object):
         if ('sid' in item.fields and 'sid' in item and Section.objects.filter(sid = item['sid']).exists()):
             if(item['sid'] == str(Section.objects.get(sid = item['sid']).sid)):
                 return
+            else:
+                print("\t!!!!!!!!!!! Section {} exists, but has different SID !!!!!!!!!!!".format(item['sid']))
         
         if ('season' in item.fields and
             'year' in item.fields and

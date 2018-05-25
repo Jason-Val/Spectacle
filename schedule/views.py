@@ -6,6 +6,7 @@ from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import generic
@@ -563,9 +564,12 @@ def schedule(request):
         tabs = request.session['tabs']
         for course_pk in tabs:
             #TODO: this will fail if course doesn't exist
-            course = Course.objects.get(pk=course_pk)
-            data = get_tab_data(course, request)
-            course_tabs.append(get_tab_data(course, request))
+            try:
+                course = Course.objects.get(pk=course_pk)
+                data = get_tab_data(course, request)
+                course_tabs.append(get_tab_data(course, request))
+            except ObjectDoesNotExist:
+                print("!!!!!!!!!! A previously open course tab stored in session no longer exists in database !!!!!!!!!!")
     
     #Get the currently active scedule
     schedule_title = None

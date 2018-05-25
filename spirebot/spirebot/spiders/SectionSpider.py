@@ -90,11 +90,6 @@ class SectionSpider(scrapy.Spider):
     login_url = 'https://www.spire.umass.edu/psp/heproda/?cmd=login&languageCd=ENG#'
     start_urls = [login_url]
     
-    def __init__(self, category='', **kwargs):
-        self.start_urls = ['http://www.example.com/category/%s' % category]
-        super().__init__(**kwargs)  # python3
-        self.log(self.domain)  # system
-    
     def __init__(self, dept_start=None, dept_end=10000, term_start=None, term_end=10, course_start=None, **kwargs):
         if not config('LOCAL', default=False):
             chrome_bin = config('GOOGLE_CHROME_SHIM')        
@@ -104,7 +99,7 @@ class SectionSpider(scrapy.Spider):
             self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
         else:
             chrome_options = Options()
-            chrome_options.add_argument("--headless")
+            #chrome_options.add_argument("--headless")
             self.driver = webdriver.Chrome(config('CHROMEDRIVER'), chrome_options=chrome_options)
         
         print("============ Starting Spider!!! ============")
@@ -131,15 +126,24 @@ class SectionSpider(scrapy.Spider):
         else:
             self.term_index = self.meta.term
         if dept_start:
-            self.dept_index = int(dept_start)
+            try:
+                self.dept_index = int(dept_start)
+                self.dept_name = None
+            except:
+                print("Received deptartment name")
+                self.dept_name = dept_start
+                self.dept_index = 2
         else:
             self.dept_index = self.meta.dept
+            self.dept_name = None
         if course_start:
             self.course_index = int(course_start)
         else:
             self.course_index = self.meta.course
         self.session_index = self.meta.session
         self.doAgain = False
+        
+        #self.log(self.domain)  # system
         
         super().__init__(**kwargs)
     
@@ -189,6 +193,9 @@ class SectionSpider(scrapy.Spider):
         return course_loader.load_item()
 
     def load_sectionitem(self, page1_selector, page2_selector, term, is_open, clss, section_index, term_index, course_index): 
+        
+        print("******* Begin loading section {} *******".format(section_index))
+        
         section_loader = ItemLoader(item = SectionItem(), selector = page2_selector)
 
         section_loader.add_xpath('sid', '//*[@id="SSR_CLS_DTL_WRK_CLASS_NBR"]')
@@ -214,16 +221,16 @@ class SectionSpider(scrapy.Spider):
         
         if( page1_selector.css("[id^='DERIVED_CLSRCH_DESCR200$" + str(course_index) + "']").extract_first() != None):
             words = replace_escape_chars(remove_tags(page1_selector.css("[id^='DERIVED_CLSRCH_DESCR200$" + str(course_index) + "']").extract_first())).split()
-
+            
             title = ''     
 
             for word in words[2:]:
                 title = title + word + ' '
 
             number = words[1]
-
+            
             dept = Department.objects.get(code = words[0])
-
+                        
             input_str = replace_escape_chars(remove_tags(page2_selector.css("[id='PSXLATITEM_XLATLONGNAME']").extract_first()))
             session = ''
             session_dict = {
@@ -313,13 +320,16 @@ class SectionSpider(scrapy.Spider):
     
     def click(self, xpath):
         wait = WebDriverWait(self.driver,10)
-        ignored_exceptions=(EC.NoSuchElementException,EC.StaleElementReferenceException,)
+        ignored_exceptions=(EC.NoSuchElementException, EC.StaleElementReferenceException,)
         element = None
-        try:
-            element = WebDriverWait(self.driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,xpath)))
-        except TimeoutException:
-            pass
-        element.click()
+        clicked = False
+        while not clicked:
+            try:
+                element = WebDriverWait(self.driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,xpath)))
+                element.click()
+                clicked = True
+            except (TimeoutException, EC.StaleElementReferenceException):
+                pass
 
     def click_and_load(self, xpath, error_xpath=None):
         
@@ -401,6 +411,9 @@ class SectionSpider(scrapy.Spider):
         return result
 
     def parse(self, response):
+    
+        print("========= Begin Parsing! ==========")
+    
         wait = WebDriverWait(self.driver,10)
         ignored_exceptions=(EC.NoSuchElementException,EC.StaleElementReferenceException,)
         #logged_in = False
@@ -420,6 +433,8 @@ class SectionSpider(scrapy.Spider):
         password.send_keys(my_pass)
         self.driver.find_element_by_name('Submit').submit()
 
+        print("========= Logged on! ==========")
+        
         #move to student center
         try:
             WebDriverWait(self.driver, 10, ignored_exceptions= ignored_exceptions).until(EC.presence_of_element_located((By.XPATH,'//*[@id="ptifrmtgtframe"]')))
@@ -479,6 +494,8 @@ class SectionSpider(scrapy.Spider):
             option_selector = Selector(text = self.driver.page_source)
             yield self.load_termitem(option_selector, self.term_index)
 
+            passed_dept = False
+                        
             while self.dept_index <= self.dept_end and self.driver.find_elements_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']'):
                 """
                 try:
@@ -493,6 +510,21 @@ class SectionSpider(scrapy.Spider):
                         dept = self.driver.find_element_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']').text
                     except StaleElementReferenceException:
                         pass
+                try:
+                    WebDriverWait(self.driver, 10, ignored_exceptions=ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')))
+                except (TimeoutException, EC.StaleElementReferenceException):
+                    pass
+                if passed_dept:
+                    break
+                if self.dept_name:
+                    print("Check dept ", dept)
+                    if dept != self.dept_name:
+                        self.dept_index += 1 #don't bother updating META, since this is a debug run; shouldn't be saved
+                        continue
+                    else:
+                        print("========== Found the right department!!! ==========")
+                        passed_dept = True
+                        
                 #self.script_click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')
                 """
                 self.safe_click('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']',
@@ -578,7 +610,6 @@ class SectionSpider(scrapy.Spider):
                         self.meta.save()
                     else:
                         initial_loop = False
-                        self.course_index = self.meta.course
                     selector_index = self.course_index #count of the links on the page
 
                     if(self.driver.find_elements_by_css_selector("[id^='DERIVED_CLSRCH_DESCR200$']")):
@@ -604,7 +635,7 @@ class SectionSpider(scrapy.Spider):
                         
                         while self.driver.find_element_by_css_selector("[id^='ACE_$ICField106$" + str(self.course_index) + "']").find_elements_by_css_selector("[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$" + str(selector_index) + "']"): 
                             
-                            #print("================== Scrape section " + str(selector_index) + " =====================")
+                            print("================== Scrape section " + str(selector_index) + " =====================")
                             
                             """
                             try:
@@ -630,7 +661,7 @@ class SectionSpider(scrapy.Spider):
                             if(not is_course):
                                 yield self.load_courseitem(page1_selector, page2_selector, self.course_index)
                                 is_course = True
-
+                            
                             yield self.load_sectionitem(page1_selector, page2_selector, term, is_open, clss, selector_index, self.term_index, self.course_index)
                             
                             #self.script_click('//*[@id="CLASS_SRCH_WRK2_SSR_PB_BACK"]')
