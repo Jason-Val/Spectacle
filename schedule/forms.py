@@ -133,7 +133,7 @@ class ScheduleForm(forms.Form):
                 
         #retrieve all courses in requested term
         term = Term.objects.get(id=self.cleaned_data['course_term'])
-        results = Course.objects.select_related().filter(section__term=term).order_by('dept__code', 'number')
+        results = Course.objects.select_related().filter(section__term=term).filter(session='un').order_by('dept__code', 'number')
         
         #filter based on department
         if self.cleaned_data['departments'] != 'NULL':
