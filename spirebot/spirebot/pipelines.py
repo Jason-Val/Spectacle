@@ -35,7 +35,8 @@ class spirebotPipeline(object):
 
             if(item['season'] == Term.objects.filter(season = item['season']).get(year = item['year']).season):
                 return
-        
+        #TODO urgent: uncomment this
+        """
         if ('all_gened' in item.fields and 'all_gened' in item and item['all_gened'] != 'None' and 'number' in item):
             gened_dict = {
                 'CW' : 'College Writing',
@@ -54,7 +55,9 @@ class spirebotPipeline(object):
                 'I' : 'Interdisciplinary',
                 'SI' : 'Science Interdisciplinary',
             }
-
+            
+            course_objects = Course.objects.filter(title = item['title']).filter(session = item['session']).filter(number = item['number'])
+            
             item.save()
             course_object = Course.objects.filter(title = item['title']).filter(session = item['session']).get(number = item['number'])
 
@@ -65,6 +68,7 @@ class spirebotPipeline(object):
                 course_object.gened.add(Gened.objects.get(code = gened_attr))
 
             return item
+        """
         
         item.save() #save scraped attributes to django database 
         return item

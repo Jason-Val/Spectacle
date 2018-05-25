@@ -22,6 +22,7 @@ from scrapy.utils.log import configure_logging
 from schedule.models import Term, Department, Course, Section, Gened, Meta
 import time
 from decouple import config, Csv
+import sys
 
 # Convenience method/class from http://www.obeythetestinggoat.com/how-to-get-selenium-to-wait-for-page-load-after-a-click.html
 class wait_for_page_load(object):
@@ -80,23 +81,39 @@ class wait_for_page_load(object):
     def __exit__(self, *_):
         self.wait_for(self.page_has_loaded)
 
+        
+# TODO:
+# implement response/behavior to debug arguments
+# implement error.log logging
 class SectionSpider(scrapy.Spider):
     name = 'test'
     login_url = 'https://www.spire.umass.edu/psp/heproda/?cmd=login&languageCd=ENG#'
     start_urls = [login_url]
     
-    def __init__(self):
-        chrome_bin = config('GOOGLE_CHROME_SHIM')        
-        chrome_options = Options()
-        chrome_options.binary_location = chrome_bin
-        chrome_options.add_argument("--headless")
-        self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
+    def __init__(self, category='', **kwargs):
+        self.start_urls = ['http://www.example.com/category/%s' % category]
+        super().__init__(**kwargs)  # python3
+        self.log(self.domain)  # system
+    
+    def __init__(self, dept_start=None, dept_end=10000, term_start=None, term_end=10, course_start=None, **kwargs):
+        if not config('LOCAL', default=False):
+            chrome_bin = config('GOOGLE_CHROME_SHIM')        
+            chrome_options = Options()
+            chrome_options.binary_location = chrome_bin
+            chrome_options.add_argument("--headless")
+            self.driver = webdriver.Chrome('chromedriver', chrome_options=chrome_options)
+        else:
+            chrome_options = Options()
+            chrome_options.add_argument("--headless")
+            self.driver = webdriver.Chrome(config('CHROMEDRIVER'), chrome_options=chrome_options)
         
         print("============ Starting Spider!!! ============")
         
         if not Meta.objects.all().exists():
             Meta.objects.create_meta(False)
         
+        # meta object is used for continuing an interrupted search; progress is written to meta, and if the scraper crashes
+        # or restarts, it will use the meta information to resume where it left off
         self.meta = Meta.objects.all()[0]
         if self.meta.finished:
             print("============ Setting a new meta object ============")
@@ -106,12 +123,26 @@ class SectionSpider(scrapy.Spider):
             self.meta.course = 0
             self.meta.session = 2
             self.meta.save()
-        self.term_index = self.meta.term
-        self.dept_index = self.meta.dept
-        self.course_index = self.meta.course
+        
+        self.dept_end = int(dept_end) # arguments are used for debugging; they ignore the meta information to instead scrape a specific range of departments or terms
+        self.term_end = int(term_end)
+        if term_start:
+            self.term_index = int(term_start)
+        else:
+            self.term_index = self.meta.term
+        if dept_start:
+            self.dept_index = int(dept_start)
+        else:
+            self.dept_index = self.meta.dept
+        if course_start:
+            self.course_index = int(course_start)
+        else:
+            self.course_index = self.meta.course
         self.session_index = self.meta.session
         self.doAgain = False
-            
+        
+        super().__init__(**kwargs)
+    
     def load_deptitem(self, page1_selector, dept):
         dept_loader = ItemLoader(item = DepartmentItem(), selector = page1_selector)
 
@@ -127,7 +158,7 @@ class SectionSpider(scrapy.Spider):
         return term_loader.load_item()
     
     #creates an item for each section and passes it into a pipeline
-    def load_courseitem(self, page1_selector, page2_selector, index):  
+    def load_courseitem(self, page1_selector, page2_selector, index):
         course_loader = ItemLoader(item = CourseItem(), selector = page1_selector)
 
         course_loader.add_css('title', "[id^='DERIVED_CLSRCH_DESCR200$" + str(index) + "']")
@@ -153,7 +184,7 @@ class SectionSpider(scrapy.Spider):
         course_loader.add_css('session', "[id='PSXLATITEM_XLATLONGNAME']")
         course_loader.add_xpath('all_gened', '//*[@id="UM_DERIVED_SA_UM_GENED"]')
         course_loader.add_css('start_date', "[id^='MTG_DATE']")
-        course_loader.add_css('end_date', "[id^='MTG_DATE']") 
+        course_loader.add_css('end_date', "[id^='MTG_DATE']")
 
         return course_loader.load_item()
 
@@ -382,8 +413,8 @@ class SectionSpider(scrapy.Spider):
         username = self.driver.find_element_by_id('userid')
         password = self.driver.find_element_by_id('pwd')
         
-        my_name = config('USERNAME')
-        my_pass = config('PASSWORD')
+        my_name = config('SPIRE_USERNAME')
+        my_pass = config('SPIRE_PASSWORD')
 
         username.send_keys(my_name)
         password.send_keys(my_pass)
@@ -424,7 +455,8 @@ class SectionSpider(scrapy.Spider):
         logged_in = True
 
         last_term = False
-        while self.term_index < 10 and self.driver.find_elements_by_xpath('//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']'):
+        
+        while self.term_index <= self.term_end and self.driver.find_elements_by_xpath('//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']'):
             """
             try:
                 WebDriverWait(self.driver, 10, ignored_exceptions= ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="UM_DERIVED_SA_UM_TERM_DESCR"]/option['+ str(self.term_index) +']')))
@@ -447,7 +479,7 @@ class SectionSpider(scrapy.Spider):
             option_selector = Selector(text = self.driver.page_source)
             yield self.load_termitem(option_selector, self.term_index)
 
-            while self.driver.find_elements_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']'):
+            while self.dept_index <= self.dept_end and self.driver.find_elements_by_xpath('//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']'):
                 """
                 try:
                     WebDriverWait(self.driver, 10, ignored_exceptions= ignored_exceptions).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="CLASS_SRCH_WRK2_SUBJECT$108$"]/option['+ str(self.dept_index) +']')))
@@ -570,7 +602,7 @@ class SectionSpider(scrapy.Spider):
                         
                         print("=========== (term {}) Scrape class {}, department {} with index {}, session {}... ===========".format(self.term_index, clss, dept, self.dept_index, self.session_index))
                         
-                        while  self.driver.find_element_by_css_selector("[id^='ACE_$ICField106$" + str(self.course_index) + "']").find_elements_by_css_selector("[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$" + str(selector_index) + "']"): 
+                        while self.driver.find_element_by_css_selector("[id^='ACE_$ICField106$" + str(self.course_index) + "']").find_elements_by_css_selector("[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$" + str(selector_index) + "']"): 
                             
                             #print("================== Scrape section " + str(selector_index) + " =====================")
                             
@@ -608,12 +640,12 @@ class SectionSpider(scrapy.Spider):
                                             max_attempts=6)
                             """
                             #self.retryingFindClick_css("[id^='CLASS_SRCH_WRK2_SSR_PB_BACK']") #clicks on view search results to go back
-                            """
+                            
                             try:
                                 WebDriverWait(self.driver, 10, ignored_exceptions = ignored_exceptions).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$" + str(selector_index) + "']")))#wait for page to load
                             except TimeoutException:
                                 pass
-                            """ 
+                            
                             selector_index = selector_index + 1
 
                         try:
@@ -655,6 +687,7 @@ class SectionSpider(scrapy.Spider):
                 #     break
         self.meta.finished = True
         self.meta.save()
+        print("|================= **Scraper has finished!!!** =================|")
             # except (TimeoutException, StaleElementReferenceException, NoSuchElementException):
             #     self.doAgain = True
             #     if(self.term_index - 1 >= 1):
